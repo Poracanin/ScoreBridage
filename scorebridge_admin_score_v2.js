@@ -246,6 +246,15 @@
   let commandHistory=[];
   const commandLabel=value=>COMMAND_LABELS[value]||String(value||'–').replaceAll('_',' ');
   const commandMatchTime=seconds=>formatMatchTime(Math.max(0,Number(seconds)||0)*1000);
+  const serialTimestamp=(date=new Date())=>
+    String(date.getHours()).padStart(2,'0')+':'+String(date.getMinutes()).padStart(2,'0')+':'+
+    String(date.getSeconds()).padStart(2,'0')+'.'+String(date.getMilliseconds()).padStart(3,'0');
+  function setSerialMonitorLine(rawMessage){
+    const line=serialTimestamp()+' -> '+rawMessage;
+    ['matchSerialLine','modalSerialLine'].forEach(id=>{
+      const element=$(id); if(element){ element.textContent=line; element.title=line; }
+    });
+  }
   function drawCommandHistory(container){
     if(!container) return;
     container.replaceChildren();
@@ -324,8 +333,10 @@
       try{ listener(t,msg); }catch(error){ log('Chyba doplňku: '+error.message); }
     });
     if(t!==T_STATUS&&t!==T_EVENT) return;
-    let d; try{ d=JSON.parse(msg.toString()); }catch(e){ return log('Neplatná zpráva'); }
+    const rawMessage=msg.toString();
+    let d; try{ d=JSON.parse(rawMessage); }catch(e){ return log('Neplatná zpráva'); }
     if(!d||typeof d!=='object'||Array.isArray(d)) return log('Neplatný tvar MQTT zprávy');
+    setSerialMonitorLine(rawMessage);
     const actionTime=now();
     $('updated').textContent = actionTime;
     $('lastAction').textContent = actionTime;
@@ -462,6 +473,7 @@
     $('modalMatchClock').textContent=modalText('matchClock');
     $('modalMatchState').textContent=modalText('matchState');
     $('modalLastCommand').textContent=modalText('matchLastCommand');
+    $('modalSerialLine').textContent=modalText('matchSerialLine');
   }
 
   function openPanelModal(view){
@@ -498,6 +510,7 @@
           <div><div class="modal-score-label">Domácí</div><div class="modal-score-value" id="modalHomeScore">${escapeModalHtml(modalText('homeScore'))}</div></div>
           <div><div class="modal-score-time" id="modalMatchClock">${escapeModalHtml(modalText('matchClock'))}</div><div class="modal-score-state" id="modalMatchState">${escapeModalHtml(modalText('matchState'))}</div><div class="modal-score-command" id="modalLastCommand">${escapeModalHtml(modalText('matchLastCommand'))}</div></div>
           <div><div class="modal-score-label">Hosté</div><div class="modal-score-value" id="modalAwayScore">${escapeModalHtml(modalText('awayScore'))}</div></div>
+          <div class="modal-score-serial-strip" id="modalSerialLine" title="${escapeModalHtml(modalText('matchSerialLine'))}">${escapeModalHtml(modalText('matchSerialLine'))}</div>
         </div>`,footer:`<button onclick="closeAppModal()">Zavřít</button><button onclick="cmd('all')">Načíst aktuální stav</button><button class="modal-confirm" onclick="openPanelModal('controls')">Ovládání zařízení</button>`};
     } else if(view==='controls'){
       config={eyebrow:'Vzdálené ovládání',title:'Ovládání zařízení',body:`
