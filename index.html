@@ -13,7 +13,7 @@
 </head>
 <body>
 <div class="engineering-app">
-  <aside class="sidebar">
+  <aside class="sidebar" id="mainSidebar">
     <div class="sidebar-brand"><img src="Logo/2.png" alt="ScoreBridge"></div>
 
     <nav class="workspace-menu" aria-label="Engineering dashboard">
@@ -49,9 +49,14 @@
       </div>
     </div>
   </aside>
+  <button class="sidebar-scrim" id="sidebarScrim" type="button" onclick="closeSidebarMenu()" aria-label="Zavřít hlavní nabídku"></button>
 
   <main class="dashboard-main">
     <header class="dashboard-topbar">
+      <button class="sidebar-toggle" id="sidebarToggle" type="button" onclick="toggleSidebarMenu()" aria-controls="mainSidebar" aria-expanded="true">
+        <span class="sidebar-toggle-icon" aria-hidden="true">☰</span>
+        <span class="sidebar-toggle-label">Skrýt nabídku</span>
+      </button>
       <img class="mobile-logo" src="Logo/2.png" alt="ScoreBridge">
       <div class="breadcrumb"><span>Admin panel</span><span>›</span><b>Přehled</b></div>
       <label class="engineering-search"><span>⌕</span><input type="search" placeholder="Hledat v dashboardu…" aria-label="Hledat v dashboardu"></label>

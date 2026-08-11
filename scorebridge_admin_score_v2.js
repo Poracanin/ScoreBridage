@@ -22,6 +22,44 @@
   document.getElementById('devid').textContent = DEVICE_ID;
   const $ = id => document.getElementById(id);
   const now = () => new Date().toLocaleTimeString('cs-CZ');
+
+  // ---- RESPONZIVNÍ HLAVNÍ NABÍDKA ----
+  const mobileSidebarQuery=window.matchMedia('(max-width: 700px)');
+  let desktopSidebarHidden=false;
+  try{ desktopSidebarHidden=localStorage.getItem('scorebridge.sidebarHidden')==='1'; }catch(_error){}
+
+  function renderSidebarMenu(){
+    const mobile=mobileSidebarQuery.matches;
+    document.body.classList.toggle('sidebar-collapsed',!mobile&&desktopSidebarHidden);
+    if(!mobile) document.body.classList.remove('sidebar-open');
+    const open=mobile?document.body.classList.contains('sidebar-open'):!desktopSidebarHidden;
+    const button=$('sidebarToggle'),label=button?.querySelector('.sidebar-toggle-label');
+    if(button){
+      button.setAttribute('aria-expanded',String(open));
+      button.setAttribute('aria-label',open?'Skrýt hlavní nabídku':'Zobrazit hlavní nabídku');
+      button.title=open?'Skrýt hlavní nabídku':'Zobrazit hlavní nabídku';
+    }
+    if(label) label.textContent=open?'Skrýt nabídku':'Zobrazit nabídku';
+  }
+  function toggleSidebarMenu(){
+    if(mobileSidebarQuery.matches){
+      document.body.classList.toggle('sidebar-open');
+    }else{
+      desktopSidebarHidden=!desktopSidebarHidden;
+      try{ localStorage.setItem('scorebridge.sidebarHidden',desktopSidebarHidden?'1':'0'); }catch(_error){}
+    }
+    renderSidebarMenu();
+  }
+  function closeSidebarMenu(){
+    document.body.classList.remove('sidebar-open');
+    renderSidebarMenu();
+  }
+  mobileSidebarQuery.addEventListener?.('change',renderSidebarMenu);
+  document.querySelectorAll('.side-link').forEach(link=>link.addEventListener('click',()=>{
+    if(mobileSidebarQuery.matches) closeSidebarMenu();
+  }));
+  renderSidebarMenu();
+
   const log = (m) => {
     const l=$('log'), timestamp=document.createElement('span');
     timestamp.className='t';
