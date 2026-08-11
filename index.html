@@ -271,7 +271,7 @@
     isolation:isolate;overflow:hidden;position:relative;
   }
   .scoreboard::before{content:"";position:absolute;inset:0;z-index:-2;opacity:.9;transition:.3s;background:radial-gradient(circle at 50% 120%,rgba(255,255,255,.08),transparent 44%);}
-  .scoreboard::after{content:"LIVE SCORE";position:absolute;top:18px;left:22px;color:var(--muted);font-size:9px;font-weight:800;letter-spacing:1.5px;}
+  .scoreboard::after{content:"ŽIVÉ SKÓRE";position:absolute;top:18px;left:22px;color:var(--muted);font-size:9px;font-weight:800;letter-spacing:1.5px;}
   .scoreboard.state-off{background:#17131c;border-color:rgba(255,100,116,.38);box-shadow:inset 0 0 80px rgba(255,100,116,.055),0 25px 70px rgba(0,0,0,.3);}
   .scoreboard.state-ready{background:#181923;border-color:rgba(255,200,87,.38);box-shadow:inset 0 0 80px rgba(255,200,87,.06),0 25px 70px rgba(0,0,0,.3);}
   .scoreboard.state-running{background:#111b1c;border-color:rgba(185,255,44,.42);box-shadow:inset 0 0 95px rgba(185,255,44,.07),0 25px 70px rgba(0,0,0,.3),0 0 30px rgba(185,255,44,.06);}
@@ -410,6 +410,8 @@
   .workspace-copy{min-width:0;}
   .workspace-copy small{display:block;color:#8b8d92;font-size:9px;margin-bottom:2px;}
   .workspace-copy strong{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;}
+  .sidebar-brand{height:66px;display:flex;align-items:center;padding:2px 8px 14px;}
+  .sidebar-brand img{display:block;width:178px;max-width:100%;height:48px;object-fit:contain;object-position:left center;}
   .workspace-menu{margin-top:22px;}
   .nav-group{margin-bottom:22px;}
   .nav-group-title{margin:0 9px 7px;color:#8d8f94;font-size:9px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;}
@@ -430,7 +432,7 @@
   .dashboard-topbar{height:62px;display:flex;align-items:center;gap:20px;padding:0 24px;border-bottom:1px solid var(--eng-line);background:rgba(255,255,255,.78);backdrop-filter:blur(12px);position:sticky;top:0;z-index:40;}
   .breadcrumb{display:flex;align-items:center;gap:8px;min-width:190px;color:#9a9ca0;font-size:10px;}
   .breadcrumb b{color:#282a2e;}
-  .mobile-logo{display:none;width:88px;height:34px;object-fit:contain;padding:5px 8px;border-radius:7px;background:#17191d;}
+  .mobile-logo{display:none;width:108px;height:36px;object-fit:contain;object-position:left center;padding:0;background:transparent;}
   .engineering-search{margin-left:auto;max-width:360px;min-width:220px;height:36px;display:flex;align-items:center;gap:8px;padding:0 12px;border:1px solid var(--eng-line);border-radius:9px;background:#f7f7f5;color:#999ba0;}
   .engineering-search input{width:100%;border:0;outline:0;background:transparent;color:#333;font:inherit;font-size:10px;}
   .engineering-search input::placeholder{color:#a4a6aa;}
@@ -487,7 +489,7 @@
 
   .score-workspace{display:grid;grid-template-columns:minmax(0,1.8fr) minmax(280px,.72fr);gap:12px;margin-bottom:12px;align-items:stretch;}
   .engineering-app .scoreboard{min-height:314px;margin:0;padding:52px 52px 34px;border:1px solid var(--eng-line);border-radius:13px;background:#fff;box-shadow:0 2px 7px rgba(0,0,0,.025);}
-  .engineering-app .scoreboard::after{content:"LIVE SCORE / MATCH CONTROL";top:18px;left:20px;color:#898b90;font-size:9px;letter-spacing:.8px;}
+  .engineering-app .scoreboard::after{content:"ŽIVÉ SKÓRE / OVLÁDÁNÍ ZÁPASU";top:18px;left:20px;color:#898b90;font-size:9px;letter-spacing:.8px;}
   .engineering-app .scoreboard::before{inset:auto 0 0;height:54px;opacity:1;background:#f3f3f0;}
   .engineering-app .scoreboard.state-off{border:2px solid #df6a78;background:#ffe6ea;box-shadow:0 10px 30px rgba(214,69,85,.12),inset 0 -9px 0 #d64555;}
   .engineering-app .scoreboard.state-ready{border:2px solid #e4af35;background:#fff0bf;box-shadow:0 10px 30px rgba(216,146,0,.12),inset 0 -9px 0 #e2a51a;}
@@ -544,7 +546,6 @@
   @media(max-width:1180px){
     .sidebar{width:210px;}
     .dashboard-main{width:calc(100% - 210px);margin-left:210px;}
-    .workspace-copy strong{font-size:10px;}
     .engineering-search{max-width:250px;}
     .score-workspace{grid-template-columns:minmax(0,1.5fr) minmax(260px,.75fr);}
     .engineering-app .scoreboard{padding-left:28px;padding-right:28px;}
@@ -585,38 +586,110 @@
     .engineering-app .control-grid .control-reset{grid-column:1;}
     .engineering-app #map{height:280px;}
   }
+
+  /* Modal workspace */
+  .app-modal-backdrop{position:fixed;inset:0;z-index:200;display:grid;place-items:center;padding:26px;background:rgba(20,22,26,.52);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);opacity:0;visibility:hidden;transition:opacity .2s ease,visibility .2s ease;}
+  .app-modal-backdrop.open{opacity:1;visibility:visible;}
+  .app-modal-backdrop.fullscreen-open{padding:0;}
+  .app-modal{width:min(940px,100%);max-height:88vh;display:flex;flex-direction:column;border:1px solid #d3d3ce;border-radius:18px;background:#fff;box-shadow:0 30px 90px rgba(0,0,0,.28);overflow:hidden;transform:translateY(18px) scale(.985);transition:transform .24s cubic-bezier(.2,.8,.2,1);}
+  .app-modal-backdrop.open .app-modal{transform:translateY(0) scale(1);}
+  .app-modal.compact{max-width:560px;}
+  .app-modal.fullscreen{width:100vw;height:100vh;max-height:none;border:0;border-radius:0;}
+  .app-modal.fullscreen .app-modal-body{flex:1;display:flex;min-height:0;padding:24px;}
+  .app-modal.fullscreen .modal-score{flex:1;width:100%;min-height:0;}
+  .app-modal.fullscreen .modal-score-value{font-size:clamp(110px,18vw,250px);letter-spacing:-.08em;}
+  .app-modal.fullscreen .modal-score-time{font-size:clamp(64px,8vw,132px);letter-spacing:-.06em;}
+  .app-modal.fullscreen .modal-score-state{font-size:clamp(12px,1.2vw,20px);}
+  .app-modal.fullscreen .modal-score-command{font-size:clamp(20px,2.4vw,42px);}
+  .app-modal-head{min-height:76px;display:flex;align-items:center;gap:18px;padding:15px 18px 15px 22px;border-bottom:1px solid #e3e3de;background:#fff;}
+  .app-modal-heading{min-width:0;flex:1;}
+  .app-modal-eyebrow{display:block;margin-bottom:4px;color:#95979c;font-size:8px;font-weight:750;letter-spacing:1px;text-transform:uppercase;}
+  .app-modal-title{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:21px;letter-spacing:-.5px;}
+  .app-modal-close{width:38px!important;height:38px!important;padding:0!important;border-radius:50%!important;background:#f1f1ee!important;color:#66696e!important;font-size:20px!important;font-weight:400!important;}
+  .app-modal-close:hover{background:#e8e8e4!important;color:#1e2024!important;transform:rotate(4deg);}
+  .app-modal-body{min-height:180px;padding:24px;overflow:auto;background:#f6f6f3;}
+  .app-modal-footer{display:flex;justify-content:flex-end;gap:8px;padding:14px 18px;border-top:1px solid #e3e3de;background:#fff;}
+  .app-modal-footer[hidden]{display:none;}
+  .modal-overview-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;}
+  .modal-stat{min-width:0;padding:16px;border:1px solid #deded9;border-radius:12px;background:#fff;}
+  .modal-stat span{display:block;margin-bottom:9px;color:#909297;font-size:8px;font-weight:750;letter-spacing:.7px;text-transform:uppercase;}
+  .modal-stat strong{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#232529;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:20px;}
+  .modal-stat.on{border-color:#b9dd75;background:#f2ffda;}
+  .modal-stat.on strong{color:#527900;}
+  .modal-stat.off{border-color:#ecc4c9;background:#fff0f2;}
+  .modal-stat.off strong{color:#b33e4b;}
+  .modal-stat.wait{border-color:#ead49f;background:#fff7db;}
+  .modal-stat.wait strong{color:#9a6900;}
+  .modal-note{margin-top:14px;padding:13px 15px;border:1px dashed #d5d5d0;border-radius:10px;background:#efefec;color:#7c7f84;font-size:10px;line-height:1.55;}
+  .modal-score{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:24px;min-height:330px;padding:34px;border:2px solid #ddd;border-radius:15px;text-align:center;}
+  .modal-score.state-off{border-color:#df6a78;background:#ffe6ea;box-shadow:inset 0 -10px 0 #d64555;}
+  .modal-score.state-ready{border-color:#e4af35;background:#fff0bf;box-shadow:inset 0 -10px 0 #e2a51a;}
+  .modal-score.state-running{border-color:#8fc623;background:#edffc9;box-shadow:inset 0 -10px 0 #94d11e;}
+  .modal-score-label{color:#797c81;font-size:9px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;}
+  .modal-score-value{margin-top:12px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:92px;line-height:1;font-weight:850;letter-spacing:-7px;}
+  .modal-score-time{font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:46px;line-height:1;font-weight:850;letter-spacing:-2px;}
+  .modal-score-state{margin-top:9px;color:#74777c;font-size:10px;}
+  .modal-score-command{margin-top:20px;color:#9a6900;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:18px;font-weight:800;}
+  .modal-control-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
+  .modal-control-grid button{height:56px!important;border-radius:11px!important;background:#fff!important;font-size:11px!important;}
+  .modal-control-grid .modal-reset{grid-column:1/-1;border-color:#9fd629!important;background:var(--eng-lime)!important;color:#182100!important;font-weight:850!important;}
+  .modal-control-grid .modal-reset:hover{background:#c7ff55!important;}
+  .modal-control-grid .modal-restart{color:#b1424f!important;border-color:#edcbd0!important;background:#fff7f8!important;}
+  .modal-map-readout{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .modal-map-card{padding:20px;border:1px solid #deded9;border-radius:12px;background:#fff;}
+  .modal-map-card span{display:block;margin-bottom:9px;color:#929499;font-size:8px;font-weight:750;letter-spacing:.7px;text-transform:uppercase;}
+  .modal-map-card strong{display:block;color:#282a2e;font-size:16px;line-height:1.4;}
+  .modal-log{min-height:420px;margin:0;padding:18px;border:1px solid #deded9;border-radius:12px;background:#11151b;color:#d0d7e2;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;line-height:1.75;white-space:pre-wrap;overflow:auto;}
+  .confirm-visual{display:flex;align-items:flex-start;gap:16px;padding:8px 2px;}
+  .confirm-icon{width:52px;height:52px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;border-radius:14px;background:var(--eng-lime);color:#172000;font-size:22px;font-weight:850;}
+  .confirm-icon.danger{background:#ffe5e8;color:#b43b49;}
+  .confirm-copy h3{margin:3px 0 8px;font-size:18px;}
+  .confirm-copy p{color:#777a80;font-size:11px;line-height:1.6;}
+  .app-modal-footer .modal-confirm{border-color:#94cc24;background:var(--eng-lime);color:#172000;}
+  .app-modal-footer .modal-confirm:hover{background:#c7ff55;}
+  .app-modal-footer .modal-confirm.danger{border-color:#d45d6b;background:#d64555;color:#fff;}
+  .app-modal-footer .modal-confirm.danger:hover{background:#bd3746;}
+  body.modal-open{overflow:hidden;}
+  @media(max-width:720px){
+    .app-modal-backdrop{padding:12px;}
+    .app-modal{max-height:94vh;border-radius:14px;}
+    .app-modal-body{padding:14px;}
+    .modal-overview-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+    .modal-score{grid-template-columns:1fr auto 1fr;gap:8px;min-height:280px;padding:24px 8px;}
+    .modal-score-value{font-size:54px;letter-spacing:-4px;}
+    .modal-score-time{font-size:27px;}
+    .modal-score-command{max-width:115px;overflow:hidden;text-overflow:ellipsis;font-size:12px;}
+    .modal-map-readout{grid-template-columns:1fr;}
+    .app-modal.fullscreen .app-modal-body{padding:10px;}
+    .app-modal.fullscreen .modal-score-value{font-size:clamp(54px,22vw,110px);}
+    .app-modal.fullscreen .modal-score-time{font-size:clamp(28px,10vw,52px);}
+  }
 </style>
 </head>
 <body>
 <div class="engineering-app">
   <aside class="sidebar">
-    <div class="workspace-card">
-      <div class="workspace-logo"><img src="Logo/3.png" alt="ScoreBridge"></div>
-      <div class="workspace-copy">
-        <small>ScoreBridge</small>
-        <strong>Admin panel</strong>
-      </div>
-    </div>
+    <div class="sidebar-brand"><img src="Logo/2.png" alt="ScoreBridge"></div>
 
     <nav class="workspace-menu" aria-label="Engineering dashboard">
       <div class="nav-group">
-        <div class="nav-group-title">Main menu</div>
-        <a class="side-link active" href="#overview"><span class="nav-icon">▦</span>Dashboard</a>
-        <a class="side-link" href="#scoreboard"><span class="nav-icon">◫</span>Live score</a>
-        <a class="side-link" href="#device-controls"><span class="nav-icon">⌁</span>Device control</a>
-        <a class="side-link" href="#telemetry"><span class="nav-icon">⌇</span>Telemetry</a>
-        <a class="side-link" href="#message-log"><span class="nav-icon">≡</span>Message log <span class="side-count">20</span></a>
+        <div class="nav-group-title">Hlavní nabídka</div>
+        <a class="side-link active" href="#overview" data-modal-view="dashboard"><span class="nav-icon">▦</span>Přehled</a>
+        <a class="side-link" href="#scoreboard" data-modal-view="score"><span class="nav-icon">◫</span>Živé skóre</a>
+        <a class="side-link" href="#device-controls" data-modal-view="controls"><span class="nav-icon">⌁</span>Ovládání zařízení</a>
+        <a class="side-link" href="#telemetry" data-modal-view="telemetry"><span class="nav-icon">⌇</span>Telemetrie</a>
+        <a class="side-link" href="#message-log" data-modal-view="log"><span class="nav-icon">≡</span>Log zpráv <span class="side-count">20</span></a>
       </div>
       <div class="nav-group">
-        <div class="nav-group-title">Engineering</div>
-        <a class="side-link" href="#map-panel"><span class="nav-icon">⌖</span>Location map</a>
-        <a class="side-link" href="#signal-panel"><span class="nav-icon">⌁</span>Signal analysis</a>
-        <a class="side-link" href="#battery-panel"><span class="nav-icon">▤</span>Battery health</a>
+        <div class="nav-group-title">Technické údaje</div>
+        <a class="side-link" href="#map-panel" data-modal-view="map"><span class="nav-icon">⌖</span>Poloha zařízení</a>
+        <a class="side-link" href="#signal-panel" data-modal-view="signal"><span class="nav-icon">⌁</span>Analýza signálu</a>
+        <a class="side-link" href="#battery-panel" data-modal-view="battery"><span class="nav-icon">▤</span>Stav baterie</a>
       </div>
       <div class="nav-group">
-        <div class="nav-group-title">System</div>
-        <a class="side-link" href="#conn"><span class="nav-icon">●</span>Connection</a>
-        <a class="side-link" href="#rec"><span class="nav-icon">○</span>Recorder</a>
+        <div class="nav-group-title">Systém</div>
+        <a class="side-link" href="#conn" data-modal-view="connection"><span class="nav-icon">●</span>Připojení</a>
+        <a class="side-link" href="#rec" data-modal-view="recorder"><span class="nav-icon">○</span>Záznam</a>
       </div>
     </nav>
 
@@ -633,8 +706,8 @@
 
   <main class="dashboard-main">
     <header class="dashboard-topbar">
-      <img class="mobile-logo" src="Logo/3.png" alt="ScoreBridge">
-      <div class="breadcrumb"><span>Dashboard</span><span>›</span><b>Admin overview</b></div>
+      <img class="mobile-logo" src="Logo/2.png" alt="ScoreBridge">
+      <div class="breadcrumb"><span>Admin panel</span><span>›</span><b>Přehled</b></div>
       <label class="engineering-search"><span>⌕</span><input type="search" placeholder="Hledat v dashboardu…" aria-label="Hledat v dashboardu"></label>
       <div class="topbar-status">
         <div class="updated">Aktualizace <b id="updated">–</b></div>
@@ -648,7 +721,7 @@
         <div>
           <small>ScoreBridge / Správa zařízení</small>
           <h1>Admin panel</h1>
-          <p>Live stav tabule, časomíry, skóre a telemetrie zařízení.</p>
+          <p>Živý stav tabule, časomíry, skóre a telemetrie zařízení.</p>
         </div>
         <div class="heading-actions">
           <button onclick="cmd('gps')">Aktualizovat polohu</button>
@@ -658,25 +731,25 @@
 
       <section class="engineering-metrics" id="overview">
         <article class="metric-card signal">
-          <div class="metric-card-head">Signal strength</div>
+          <div class="metric-card-head">Síla signálu</div>
           <div class="metric-card-value"><span id="signal">–</span> <small>dBm</small></div>
           <div class="metric-card-foot">Mobilní síť / RSSI</div>
           <div class="metric-spark" id="sigbars"><i style="height:30%"></i><i style="height:48%"></i><i style="height:64%"></i><i style="height:82%"></i><i style="height:100%"></i></div>
         </article>
         <article class="metric-card battery">
-          <div class="metric-card-head">Battery level</div>
+          <div class="metric-card-head">Stav baterie</div>
           <div class="metric-card-value"><span id="batt">–</span><small>%</small></div>
           <div class="metric-card-foot"><span id="battmv">–</span> mV</div>
           <div class="metric-spark"><i style="height:25%"></i><i style="height:60%"></i><i style="height:44%"></i><i style="height:78%"></i><i style="height:55%"></i><i style="height:92%"></i></div>
         </article>
         <article class="metric-card">
-          <div class="metric-card-head">GPS module</div>
+          <div class="metric-card-head">GPS modul</div>
           <div class="metric-card-value state-text off" id="gpsstate">vypnuto</div>
           <div class="metric-card-foot">Poloha zařízení</div>
           <div class="metric-spark"><i style="height:22%"></i><i style="height:38%"></i><i style="height:65%"></i><i style="height:48%"></i><i style="height:82%"></i></div>
         </article>
         <article class="metric-card">
-          <div class="metric-card-head">Device uptime</div>
+          <div class="metric-card-head">Uptime zařízení</div>
           <div class="metric-card-value" id="uptime">–</div>
           <div class="metric-card-foot">Čas od spuštění</div>
           <div class="metric-spark"><i style="height:20%"></i><i style="height:42%"></i><i style="height:35%"></i><i style="height:70%"></i><i style="height:88%"></i></div>
@@ -712,25 +785,25 @@
 
         <aside class="control-module" id="device-controls">
           <div class="module-head">
-            <h2>Device control</h2>
-            <span class="module-badge">REMOTE</span>
+            <h2>Ovládání zařízení</h2>
+            <span class="module-badge">VZDÁLENĚ</span>
           </div>
           <div class="control-readout">
-            <span>Last received command</span>
+            <span>Poslední přijatý příkaz</span>
             <strong id="controlLastCommand">–</strong>
           </div>
           <div class="control-grid">
-            <button class="control-reset" onclick="if(confirm('Vynulovat skóre?'))cmd('score_reset')">Vynulovat skóre</button>
+            <button class="control-reset" onclick="openResetModal()">Vynulovat skóre</button>
             <button onclick="cmd('all')">Načíst stav</button>
             <button onclick="cmd('gps')">Načíst polohu</button>
             <button class="gps-toggle" id="gpsSwitch" role="switch" aria-checked="false" onclick="toggleGps()">GPS vypnuto</button>
-            <button class="restart-control" onclick="if(confirm('Opravdu restartovat zařízení?'))cmd('reboot')">Restart</button>
+            <button class="restart-control" onclick="openRestartModal()">Restart</button>
           </div>
         </aside>
       </section>
 
       <section class="engineering-section" id="telemetry">
-        <div class="section-bar"><h2>System telemetry</h2><span>Live monitoring / 30 samples</span></div>
+        <div class="section-bar"><h2>Systémová telemetrie</h2><span>Živé sledování / 30 vzorků</span></div>
         <div class="grid2">
           <div class="block" id="map-panel">
             <h3>Poloha zařízení <span id="gpsbadge" style="font-weight:500;color:var(--faint)">bez fixu</span></h3>
@@ -752,13 +825,27 @@
 
       <section class="panel log-panel" id="message-log">
         <div class="log-head">
-          <div class="log-meta"><div class="title" style="margin:0">Command history</div><span>20 recent entries</span></div>
+          <div class="log-meta"><div class="title" style="margin:0">Historie příkazů</div><span>20 posledních záznamů</span></div>
           <button class="ghost" onclick="document.getElementById('log').innerHTML=''">Vyčistit</button>
         </div>
         <div id="log"></div>
       </section>
     </div>
   </main>
+
+  <div class="app-modal-backdrop" id="appModal" aria-hidden="true">
+    <section class="app-modal" id="appModalDialog" role="dialog" aria-modal="true" aria-labelledby="appModalTitle">
+      <header class="app-modal-head">
+        <div class="app-modal-heading">
+          <span class="app-modal-eyebrow" id="appModalEyebrow">ScoreBridge admin</span>
+          <h2 class="app-modal-title" id="appModalTitle">Detail</h2>
+        </div>
+        <button class="app-modal-close" id="appModalClose" type="button" aria-label="Zavřít modální okno">×</button>
+      </header>
+      <div class="app-modal-body" id="appModalBody"></div>
+      <footer class="app-modal-footer" id="appModalFooter" hidden></footer>
+    </section>
+  </div>
 </div>
 
 <script>
@@ -788,6 +875,7 @@
       el.classList.add('flash');
     }
     displayedScores[side]=next;
+    refreshLiveScoreModal();
   }
   $('homeScore').addEventListener('animationend', e=>e.currentTarget.classList.remove('flash'));
   $('awayScore').addEventListener('animationend', e=>e.currentTarget.classList.remove('flash'));
@@ -827,6 +915,7 @@
     const board=$('scoreboard');
     board.classList.remove('state-off','state-ready','state-running');
     board.classList.add(!derbyPowerState?'state-off':remoteClockState===true?'state-running':'state-ready');
+    refreshLiveScoreModal();
   }
   function renderMatchClock(at=Date.now()){
     let elapsed=currentMatchMs(at);
@@ -873,6 +962,7 @@
     } else {
       clock.textContent='Konec'; state.textContent='zápas ukončen';
     }
+    refreshLiveScoreModal();
   }
   function handleClockSignal(on){
     const at=Date.now(), previous=remoteClockState;
@@ -902,6 +992,7 @@
     const status=$('clockStatus');
     status.textContent=on?'běží':'stojí';
     status.className='metric-value state-text '+(on?'on':'wait');
+    $('clockStatusCell').className='status-cell '+(on?'tone-on':'tone-wait');
     updateScoreboardState();
     renderMatchClock(at);
   }
@@ -959,6 +1050,7 @@
       derbyPowerState=!!d.derby_power;
       p.className='metric-value state-text '+(derbyPowerState?'on':'off');
       p.textContent=derbyPowerState?'zapnuta':'vypnuta';
+      $('powerStatusCell').className='status-cell '+(derbyPowerState?'tone-on':'tone-off');
       updateScoreboardState();
     }
 
@@ -969,6 +1061,7 @@
       $('matchLastCommand').title=d.event;
       $('controlLastCommand').textContent=d.event;
       $('controlLastCommand').title=d.event;
+      refreshLiveScoreModal();
     }
 
     if(t===T_EVENT){
@@ -1023,6 +1116,176 @@
     const lvl = csq>=31?5:csq>=20?4:csq>=13?3:csq>=8?2:csq>0?1:0;
     bars.forEach((b,i)=>b.className = i<lvl?'a':''); }
   function fmtUp(s){ const h=Math.floor(s/3600),m=Math.floor(s%3600/60); return h+'h '+m+'m'; }
+
+  // ---- MODAL WORKSPACE ----
+  let activeModalView=null;
+  let modalReturnFocus=null;
+  const modalText=id=>($(id)?.textContent||'–').trim()||'–';
+  const escapeModalHtml=value=>String(value??'–')
+    .replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;')
+    .replaceAll('"','&quot;').replaceAll("'",'&#039;');
+  const modalStat=(label,value,tone='')=>`<div class="modal-stat ${tone}"><span>${escapeModalHtml(label)}</span><strong>${escapeModalHtml(value)}</strong></div>`;
+
+  function showAppModal({eyebrow='ScoreBridge admin',title,body,footer='',compact=false,fullscreen=false}){
+    const backdrop=$('appModal');
+    if(!backdrop.classList.contains('open')) modalReturnFocus=document.activeElement;
+    $('appModalEyebrow').textContent=eyebrow;
+    $('appModalTitle').textContent=title;
+    $('appModalBody').innerHTML=body;
+    $('appModalFooter').innerHTML=footer;
+    $('appModalFooter').hidden=!footer;
+    $('appModalDialog').classList.toggle('compact',compact);
+    $('appModalDialog').classList.toggle('fullscreen',fullscreen);
+    backdrop.classList.toggle('fullscreen-open',fullscreen);
+    backdrop.classList.add('open');
+    backdrop.setAttribute('aria-hidden','false');
+    document.body.classList.add('modal-open');
+    requestAnimationFrame(()=>$('appModalClose').focus());
+  }
+
+  function closeAppModal(){
+    const backdrop=$('appModal');
+    backdrop.classList.remove('open');
+    backdrop.classList.remove('fullscreen-open');
+    backdrop.setAttribute('aria-hidden','true');
+    document.body.classList.remove('modal-open');
+    activeModalView=null;
+    if(modalReturnFocus&&document.contains(modalReturnFocus)) modalReturnFocus.focus();
+    modalReturnFocus=null;
+  }
+
+  function refreshLiveScoreModal(){
+    if(activeModalView!=='score'||!$('modalLiveScore')) return;
+    const modalScore=$('modalLiveScore');
+    const tone=$('scoreboard').classList.contains('state-running')?'state-running':
+      $('scoreboard').classList.contains('state-ready')?'state-ready':'state-off';
+    modalScore.className='modal-score '+tone;
+    $('modalHomeScore').textContent=modalText('homeScore');
+    $('modalAwayScore').textContent=modalText('awayScore');
+    $('modalMatchClock').textContent=modalText('matchClock');
+    $('modalMatchState').textContent=modalText('matchState');
+    $('modalLastCommand').textContent=modalText('matchLastCommand');
+  }
+
+  function openPanelModal(view){
+    activeModalView=view;
+    const signal=modalText('signal')+' dBm';
+    const battery=modalText('batt')+' %';
+    const gps=modalText('gpsstate');
+    const uptime=modalText('uptime');
+    const power=modalText('derbyPower');
+    const clock=modalText('clockStatus');
+    const command=modalText('lastDerbyEvent');
+    const scoreTone=$('scoreboard').classList.contains('state-running')?'state-running':
+      $('scoreboard').classList.contains('state-ready')?'state-ready':'state-off';
+    const powerTone=derbyPowerState?'on':'off';
+    const clockTone=remoteClockState===true?'on':'wait';
+    const gpsTone=$('gpsstate').classList.contains('on')?'on':'off';
+    let config;
+
+    if(view==='dashboard'){
+      config={eyebrow:'Admin přehled',title:'Přehled zařízení',body:`
+        <div class="modal-overview-grid">
+          ${modalStat('Signál',signal)}${modalStat('Baterie',battery)}
+          ${modalStat('GPS',gps,gpsTone)}${modalStat('Uptime',uptime)}
+          ${modalStat('Tabule',power,powerTone)}${modalStat('Časomíra',clock,clockTone)}
+          ${modalStat('Skóre',modalText('homeScore')+' : '+modalText('awayScore'))}
+          ${modalStat('Poslední příkaz',command,'wait')}
+        </div>
+        <div class="modal-note">Souhrn právě zobrazených dat zařízení <b>${escapeModalHtml(modalText('devid'))}</b>. Nové hodnoty se načtou příkazem „Načíst aktuální stav“.</div>`};
+    } else if(view==='score'){
+      config={eyebrow:'Živé ovládání zápasu',title:'Živé skóre',fullscreen:true,body:`
+        <div class="modal-score ${scoreTone}" id="modalLiveScore">
+          <div><div class="modal-score-label">Domácí</div><div class="modal-score-value" id="modalHomeScore">${escapeModalHtml(modalText('homeScore'))}</div></div>
+          <div><div class="modal-score-time" id="modalMatchClock">${escapeModalHtml(modalText('matchClock'))}</div><div class="modal-score-state" id="modalMatchState">${escapeModalHtml(modalText('matchState'))}</div><div class="modal-score-command" id="modalLastCommand">${escapeModalHtml(modalText('matchLastCommand'))}</div></div>
+          <div><div class="modal-score-label">Hosté</div><div class="modal-score-value" id="modalAwayScore">${escapeModalHtml(modalText('awayScore'))}</div></div>
+        </div>`,footer:`<button onclick="closeAppModal()">Zavřít</button><button onclick="cmd('all')">Načíst aktuální stav</button><button class="modal-confirm" onclick="openPanelModal('controls')">Ovládání zařízení</button>`};
+    } else if(view==='controls'){
+      config={eyebrow:'Vzdálené ovládání',title:'Ovládání zařízení',body:`
+        <div class="modal-control-grid">
+          <button class="modal-reset" onclick="openResetModal()">Vynulovat skóre</button>
+          <button onclick="cmd('all')">Načíst aktuální stav</button>
+          <button onclick="cmd('gps')">Aktualizovat polohu</button>
+          <button onclick="toggleGps()">${escapeModalHtml(gpsState?'GPS vypnout':'GPS zapnout')}</button>
+          <button class="modal-restart" onclick="openRestartModal()">Restartovat zařízení</button>
+        </div>
+        <div class="modal-note">Poslední přijatý příkaz: <b>${escapeModalHtml(command)}</b>. Příkazy jsou odesílány přes MQTT na zařízení ${escapeModalHtml(modalText('devid'))}.</div>`};
+    } else if(view==='telemetry'){
+      config={eyebrow:'Systémová telemetrie',title:'Telemetrie zařízení',body:`
+        <div class="modal-overview-grid">
+          ${modalStat('Signál',signal)}${modalStat('Baterie',battery)}
+          ${modalStat('Napětí',modalText('battmv')+' mV')}${modalStat('GPS',gps,gpsTone)}
+          ${modalStat('Uptime',uptime)}${modalStat('Poslední akce',modalText('lastAction'))}
+        </div>
+        <div class="modal-note">Grafy v hlavním dashboardu uchovávají posledních 30 vzorků signálu a baterie.</div>`};
+    } else if(view==='log'){
+      const logText=($('log').innerText||$('log').textContent||'Žádné zprávy.').trim()||'Žádné zprávy.';
+      config={eyebrow:'Historie příkazů',title:'Log zpráv',body:`<pre class="modal-log">${escapeModalHtml(logText)}</pre>`};
+    } else if(view==='map'){
+      config={eyebrow:'Polohové služby',title:'Poloha zařízení',body:`
+        <div class="modal-map-readout">
+          <div class="modal-map-card"><span>GPS modul</span><strong>${escapeModalHtml(gps)}</strong></div>
+          <div class="modal-map-card"><span>Stav fixu</span><strong>${escapeModalHtml(modalText('gpsbadge'))}</strong></div>
+          <div class="modal-map-card" style="grid-column:1/-1"><span>Souřadnice</span><strong>${escapeModalHtml(modalText('coords'))}</strong></div>
+        </div>`,footer:`<button onclick="closeAppModal()">Zavřít</button><button class="modal-confirm" onclick="cmd('gps')">Aktualizovat polohu</button>`};
+    } else if(view==='signal'){
+      const activeBars=document.querySelectorAll('#sigbars i.a').length;
+      config={eyebrow:'Diagnostika rádia',title:'Analýza signálu',body:`
+        <div class="modal-overview-grid">${modalStat('Aktuální RSSI',signal)}${modalStat('Aktivní úroveň',activeBars+' / 5')}${modalStat('Poslední akce',modalText('lastAction'))}${modalStat('Připojení',modalText('conn'),$('conn').classList.contains('on')?'on':'off')}</div>
+        <div class="modal-note">Vyšší počet aktivních dílků znamená stabilnější mobilní spojení. Detailní průběh je v grafu „Signál“.</div>`};
+    } else if(view==='battery'){
+      config={eyebrow:'Diagnostika napájení',title:'Stav baterie',body:`
+        <div class="modal-overview-grid">${modalStat('Kapacita',battery,'on')}${modalStat('Napětí',modalText('battmv')+' mV')}${modalStat('Uptime',uptime)}${modalStat('Poslední akce',modalText('lastAction'))}</div>
+        <div class="modal-note">Procento baterie je dopočítané z napětí zařízení. Graf uchovává posledních 30 přijatých hodnot.</div>`};
+    } else if(view==='connection'){
+      const connected=$('conn').classList.contains('on');
+      config={eyebrow:'MQTT připojení',title:'Stav připojení',body:`
+        <div class="modal-overview-grid">${modalStat('Broker',connected?'připojeno':'odpojeno',connected?'on':'off')}${modalStat('Zařízení',modalText('devid'))}${modalStat('Aktualizace',modalText('updated'))}${modalStat('Poslední příkaz',command,'wait')}</div>
+        <div class="modal-note">Broker: <b>broker.hivemq.com</b> · WebSocket MQTT port 8884.</div>`};
+    } else {
+      const recording=$('rec').classList.contains('rec-on');
+      config={eyebrow:'Stav záznamu',title:'Záznam zařízení',body:`
+        <div class="modal-overview-grid">${modalStat('Záznam',recording?'zapnut':'vypnut',recording?'on':'off')}${modalStat('Poslední akce',modalText('lastAction'))}${modalStat('Uptime',uptime)}${modalStat('Zařízení',modalText('devid'))}</div>
+        <div class="modal-note">Záznam se přepíná fyzickým tlačítkem na zařízení a jeho stav se propisuje do horní systémové lišty.</div>`};
+    }
+    showAppModal(config);
+  }
+
+  function openResetModal(){
+    activeModalView='confirm-reset';
+    showAppModal({eyebrow:'Potvrzení příkazu',title:'Vynulovat skóre?',compact:true,body:`
+      <div class="confirm-visual"><div class="confirm-icon">0:0</div><div class="confirm-copy"><h3>Vrátit skóre na nulu</h3><p>Domácí i hosté budou nastaveni na hodnotu 0. Příkaz se okamžitě odešle do zařízení přes MQTT.</p></div></div>`,
+      footer:`<button onclick="closeAppModal()">Zrušit</button><button class="modal-confirm" onclick="confirmScoreReset()">Vynulovat skóre</button>`});
+  }
+  function confirmScoreReset(){ cmd('score_reset'); closeAppModal(); }
+
+  function openRestartModal(){
+    activeModalView='confirm-restart';
+    showAppModal({eyebrow:'Systémový příkaz',title:'Restartovat zařízení?',compact:true,body:`
+      <div class="confirm-visual"><div class="confirm-icon danger">!</div><div class="confirm-copy"><h3>Zařízení se krátce odpojí</h3><p>Restart ukončí aktuální spojení a zařízení se musí znovu připojit k mobilní síti a MQTT brokeru.</p></div></div>`,
+      footer:`<button onclick="closeAppModal()">Zrušit</button><button class="modal-confirm danger" onclick="confirmDeviceRestart()">Restartovat</button>`});
+  }
+  function confirmDeviceRestart(){ cmd('reboot'); closeAppModal(); }
+
+  document.querySelectorAll('[data-modal-view]').forEach(link=>link.addEventListener('click',event=>{
+    event.preventDefault();
+    document.querySelectorAll('.side-link').forEach(item=>item.classList.remove('active'));
+    link.classList.add('active');
+    openPanelModal(link.dataset.modalView);
+  }));
+  $('appModalClose').addEventListener('click',closeAppModal);
+  $('appModal').addEventListener('click',event=>{ if(event.target===$('appModal')) closeAppModal(); });
+  document.addEventListener('keydown',event=>{
+    if(!$('appModal').classList.contains('open')) return;
+    if(event.key==='Escape') return closeAppModal();
+    if(event.key!=='Tab') return;
+    const focusable=[...$('appModalDialog').querySelectorAll('button,[href],input,select,textarea,[tabindex]:not([tabindex="-1"])')]
+      .filter(element=>!element.disabled&&element.offsetParent!==null);
+    if(!focusable.length) return;
+    const first=focusable[0],last=focusable[focusable.length-1];
+    if(event.shiftKey&&document.activeElement===first){ event.preventDefault(); last.focus(); }
+    else if(!event.shiftKey&&document.activeElement===last){ event.preventDefault(); first.focus(); }
+  });
 </script>
 </body>
 </html>
