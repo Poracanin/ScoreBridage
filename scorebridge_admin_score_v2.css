@@ -669,6 +669,7 @@
   .modal-stat.wait strong{color:#9a6900;}
   .modal-note{margin-top:14px;padding:13px 15px;border:1px dashed #d5d5d0;border-radius:10px;background:#efefec;color:#7c7f84;font-size:10px;line-height:1.55;}
   .modal-score{position:relative;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:24px;min-height:380px;padding:34px 34px 144px;border:2px solid #ddd;border-radius:15px;text-align:center;overflow:hidden;}
+  .modal-score.has-rf-frame{grid-template-columns:minmax(120px,1fr) auto minmax(120px,1fr) minmax(230px,.72fr);}
   .modal-score.state-off{border-color:#df6a78;background:#ffe6ea;box-shadow:inset 0 -10px 0 #d64555;}
   .modal-score.state-ready{border-color:#e4af35;background:#fff0bf;box-shadow:inset 0 -10px 0 #e2a51a;}
   .modal-score.state-running{border-color:#8fc623;background:#edffc9;box-shadow:inset 0 -10px 0 #94d11e;}
@@ -677,6 +678,14 @@
   .modal-score-time{font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:46px;line-height:1;font-weight:850;letter-spacing:-2px;}
   .modal-score-state{margin-top:9px;color:#74777c;font-size:10px;}
   .modal-score-command{margin-top:20px;color:#b87800;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:24px;font-weight:900;letter-spacing:-.6px;text-shadow:0 5px 20px rgba(184,120,0,.18);}
+  .modal-rf-frame{min-width:0;align-self:stretch;display:flex;flex-direction:column;justify-content:center;padding:18px;border:1px solid rgba(62,66,72,.18);border-radius:14px;background:rgba(255,255,255,.55);text-align:left;}
+  .modal-rf-head span{display:block;color:#85888d;font-size:8px;font-weight:850;letter-spacing:.8px;text-transform:uppercase;}
+  .modal-rf-head strong{display:block;margin-top:5px;color:#292c31;font-size:12px;line-height:1.25;}
+  .modal-rf-head small{display:block;margin-top:5px;color:#797d83;font:700 9px ui-monospace,'SF Mono',Menlo,monospace;line-height:1.35;}
+  .modal-rf-pulse{height:94px;display:flex;align-items:center;gap:2px;margin-top:15px;padding:12px;border:1px solid rgba(65,69,75,.15);border-radius:10px;background:rgba(245,245,241,.8);overflow:hidden;}
+  .modal-rf-pulse i{display:block;min-width:2px;border-radius:1px;background:#a4a8ad;}
+  .modal-rf-pulse i.high{background:#26292e;}
+  .modal-rf-empty{width:100%;color:#999ca1;font:700 9px/1.4 ui-monospace,'SF Mono',Menlo,monospace;text-align:center;}
   .modal-score-serial-strip{position:absolute;z-index:3;left:0;right:0;bottom:0;height:116px;display:-webkit-box;padding:17px 26px;background:#ecece8;color:#3f4248;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:13.5px;line-height:1.45;font-weight:680;text-align:left;white-space:normal;overflow:hidden;overflow-wrap:anywhere;-webkit-box-orient:vertical;-webkit-line-clamp:3;}
   .modal-command-history{width:300px;margin:16px auto 0;padding:10px;border:1px solid rgba(80,84,91,.18);border-radius:10px;background:rgba(255,255,255,.55);text-align:left;}
   .modal-command-history .score-command-feed-title{font-size:8px;}
@@ -719,11 +728,14 @@
     .modal-overview-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
     .modal-control-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;}
     .modal-control-grid button{height:60px!important;font-size:12px!important;}
-    .modal-score{grid-template-columns:1fr auto 1fr;gap:8px;min-height:350px;padding:24px 8px 112px;}
+    .modal-score,.modal-score.has-rf-frame{grid-template-columns:1fr auto 1fr;gap:8px;min-height:470px;padding:24px 8px 194px;}
     .modal-score-value{font-size:54px;letter-spacing:-4px;}
     .modal-score-time{font-size:27px;}
     .modal-score-command{max-width:135px;font-size:17px;line-height:1.1;}
     .modal-score-serial-strip{height:90px;padding:12px 14px;font-size:10px;line-height:1.4;}
+    .modal-rf-frame{position:absolute;left:10px;right:10px;bottom:100px;min-height:82px;padding:10px 12px;display:grid;grid-template-columns:minmax(130px,.8fr) 1.2fr;align-items:center;gap:10px;}
+    .modal-rf-pulse{height:58px;margin-top:0;padding:7px;}
+    .modal-rf-pulse i{max-height:38px;}
     .modal-map-readout{grid-template-columns:1fr;}
     .app-modal.fullscreen .app-modal-body{padding:10px;}
     .app-modal.fullscreen .modal-score-value{font-size:clamp(54px,22vw,110px);}

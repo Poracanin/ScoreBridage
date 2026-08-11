@@ -292,6 +292,8 @@
     GPS_ON:'GPS zapnuto',GPS_OFF:'GPS vypnuto',REBOOTING:'Restart zařízení',UNKNOWN:'Neznámý RF příkaz'
   };
   let commandHistory=[];
+  let lastNormalizedRfFrame=[];
+  let lastNormalizedRfMeta='Čekám na kalibrační vzorek';
   const commandLabel=value=>COMMAND_LABELS[value]||String(value||'–').replaceAll('_',' ');
   const commandMatchTime=seconds=>formatMatchTime(Math.max(0,Number(seconds)||0)*1000);
   const serialTimestamp=(date=new Date())=>
@@ -321,6 +323,35 @@
     drawCommandHistory($('scoreCommandFeed'));
     drawCommandHistory($('modalCommandFeed'));
   }
+  function drawNormalizedRfFrame(container){
+    if(!container) return;
+    container.replaceChildren();
+    if(!lastNormalizedRfFrame.length){
+      const empty=document.createElement('span'); empty.className='modal-rf-empty'; empty.textContent='Zatím nebyl zachycen žádný vzorek'; container.append(empty); return;
+    }
+    lastNormalizedRfFrame.slice(0,68).forEach(([level,units])=>{
+      const bar=document.createElement('i');
+      if(level===1) bar.className='high';
+      bar.style.height=level===1?'52px':'20px';
+      bar.style.flex=String(Math.max(1,Math.min(10,units)));
+      container.append(bar);
+    });
+  }
+  function refreshNormalizedRfPreviews(){
+    drawNormalizedRfFrame($('modalNormalizedRfPulse'));
+    const meta=$('modalNormalizedRfMeta'); if(meta) meta.textContent=lastNormalizedRfMeta;
+  }
+  window.addEventListener('scorebridge:rf-frame',event=>{
+    const source=Array.isArray(event.detail?.frame)?event.detail.frame:[];
+    const normalized=source.slice(0,128).map(pair=>[Number(pair?.[0]),Number(pair?.[1])])
+      .filter(([level,units])=>(level===0||level===1)&&Number.isInteger(units)&&units>=1&&units<=120);
+    if(!normalized.length) return;
+    lastNormalizedRfFrame=normalized;
+    const command=typeof event.detail?.command==='string'&&/^[A-Z0-9_]{1,31}$/.test(event.detail.command)?commandLabel(event.detail.command):'RF příkaz';
+    const sample=Number.isInteger(Number(event.detail?.sampleIndex))?` · vzorek ${Number(event.detail.sampleIndex)}`:'';
+    lastNormalizedRfMeta=command+sample+` · ${normalized.length} pulzů`;
+    refreshNormalizedRfPreviews();
+  });
   function setLastCommand(eventName){
     if(!eventName) return;
     ['lastDerbyEvent','matchLastCommand','controlLastCommand'].forEach(id=>{
@@ -524,6 +555,7 @@
     $('modalMatchState').textContent=modalText('matchState');
     $('modalLastCommand').textContent=modalText('matchLastCommand');
     $('modalSerialLine').textContent=modalText('matchSerialLine');
+    refreshNormalizedRfPreviews();
   }
 
   function openPanelModal(view){
@@ -556,10 +588,14 @@
         <div class="modal-note">Souhrn právě zobrazených dat zařízení <b>${escapeModalHtml(modalText('devid'))}</b>. Nové hodnoty se načtou příkazem „Načíst aktuální stav“.</div>`};
     } else if(view==='score'){
       config={eyebrow:'Živé ovládání zápasu',title:'Živé skóre',fullscreen:true,body:`
-        <div class="modal-score ${scoreTone}" id="modalLiveScore">
+        <div class="modal-score has-rf-frame ${scoreTone}" id="modalLiveScore">
           <div><div class="modal-score-label">Domácí</div><div class="modal-score-value" id="modalHomeScore">${escapeModalHtml(modalText('homeScore'))}</div></div>
           <div><div class="modal-score-time" id="modalMatchClock">${escapeModalHtml(modalText('matchClock'))}</div><div class="modal-score-state" id="modalMatchState">${escapeModalHtml(modalText('matchState'))}</div><div class="modal-score-command" id="modalLastCommand">${escapeModalHtml(modalText('matchLastCommand'))}</div></div>
           <div><div class="modal-score-label">Hosté</div><div class="modal-score-value" id="modalAwayScore">${escapeModalHtml(modalText('awayScore'))}</div></div>
+          <aside class="modal-rf-frame">
+            <div class="modal-rf-head"><span>RF diagnostika</span><strong>Poslední normalizovaný frame</strong><small id="modalNormalizedRfMeta">${escapeModalHtml(lastNormalizedRfMeta)}</small></div>
+            <div class="modal-rf-pulse" id="modalNormalizedRfPulse"></div>
+          </aside>
           <div class="modal-score-serial-strip" id="modalSerialLine" title="${escapeModalHtml(modalText('matchSerialLine'))}">${escapeModalHtml(modalText('matchSerialLine'))}</div>
         </div>`,footer:`<button onclick="closeAppModal()">Zavřít</button><button onclick="cmd('all')">Načíst aktuální stav</button><button class="modal-confirm" onclick="openPanelModal('controls')">Ovládání zařízení</button>`};
     } else if(view==='controls'){
@@ -614,7 +650,10 @@
         <div class="modal-note">Záznam se přepíná fyzickým tlačítkem na zařízení a jeho stav se propisuje do horní systémové lišty.</div>`};
     }
     showAppModal(config);
-    if(view==='score') renderCommandHistory();
+    if(view==='score'){
+      renderCommandHistory();
+      refreshNormalizedRfPreviews();
+    }
   }
 
   function openResetModal(){

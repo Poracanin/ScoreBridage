@@ -16,7 +16,9 @@
   const MAX_VARIANTS = 24;
   const MAX_SIGNATURE_POINTS = 16;
   const MAX_FRAME_PAIRS = 128;
-  const REQUIRED_SAMPLES = 3;
+  const REQUIRED_SAMPLES = 10;
+  const SAMPLE_AGREEMENT = 0.80;
+  const LEARNING_TIMEOUT_SECONDS = 1200;
   const MIN_CONFIDENCE = 75;
   const SYNC = [[0, 1], [1, 1], [0, 7], [1, 1]];
   const VALID_COMMANDS = new Set(['HOME_PLUS', 'AWAY_PLUS', 'POWER_ON', 'POWER_OFF', 'START_STOP', 'ADJUST', 'TIME_ADD_TENTATIVE']);
@@ -24,36 +26,36 @@
   const steps = [
     {
       key: 'HOME_PLUS_OFF', command: 'HOME_PLUS', context: 'POWER_OFF', label: 'Domácí +1', subtitle: 'Tabule vypnuta',
-      button: 'DOMÁCÍ +1', instruction: 'Nechte tabuli vypnutou a třikrát stiskněte tlačítko pro zvýšení skóre domácích.', samples: 3
+      button: 'DOMÁCÍ +1', instruction: 'Nechte tabuli vypnutou a desetkrát krátce stiskněte tlačítko pro zvýšení skóre domácích.', samples: REQUIRED_SAMPLES
     },
     {
       key: 'AWAY_PLUS_OFF', command: 'AWAY_PLUS', context: 'POWER_OFF', label: 'Hosté +1', subtitle: 'Tabule vypnuta',
-      button: 'HOSTÉ +1', instruction: 'Tabule zůstává vypnutá. Třikrát stiskněte tlačítko pro zvýšení skóre hostů.', samples: 3
+      button: 'HOSTÉ +1', instruction: 'Tabule zůstává vypnutá. Desetkrát krátce stiskněte tlačítko pro zvýšení skóre hostů.', samples: REQUIRED_SAMPLES
     },
     {
       key: 'POWER_TOGGLE', command: 'POWER_ON', context: 'ANY', label: 'Zapnout / vypnout', subtitle: 'Střídaná sekvence',
-      button: 'ZAPNOUT', instruction: 'Střídejte zapnutí a vypnutí přesně podle pokynu. Nasbíráme tři vzorky každého stavu.', samples: 6,
-      sequence: ['POWER_ON', 'POWER_OFF', 'POWER_ON', 'POWER_OFF', 'POWER_ON', 'POWER_OFF']
+      button: 'ZAPNOUT', instruction: 'Střídejte zapnutí a vypnutí přesně podle pokynu. Nasbíráme deset vzorků každého stavu.', samples: REQUIRED_SAMPLES * 2,
+      sequence: Array.from({ length: REQUIRED_SAMPLES * 2 }, (_, index) => index % 2 ? 'POWER_OFF' : 'POWER_ON')
     },
     {
       key: 'HOME_PLUS_ON', command: 'HOME_PLUS', context: 'POWER_ON', label: 'Domácí +1', subtitle: 'Tabule zapnuta',
-      button: 'DOMÁCÍ +1', instruction: 'Zapněte tabuli a třikrát stiskněte tlačítko pro zvýšení skóre domácích.', samples: 3
+      button: 'DOMÁCÍ +1', instruction: 'Zapněte tabuli a desetkrát krátce stiskněte tlačítko pro zvýšení skóre domácích.', samples: REQUIRED_SAMPLES
     },
     {
       key: 'AWAY_PLUS_ON', command: 'AWAY_PLUS', context: 'POWER_ON', label: 'Hosté +1', subtitle: 'Tabule zapnuta',
-      button: 'HOSTÉ +1', instruction: 'Tabule zůstává zapnutá. Třikrát stiskněte tlačítko pro zvýšení skóre hostů.', samples: 3
+      button: 'HOSTÉ +1', instruction: 'Tabule zůstává zapnutá. Desetkrát krátce stiskněte tlačítko pro zvýšení skóre hostů.', samples: REQUIRED_SAMPLES
     },
     {
       key: 'START_STOP_ON', command: 'START_STOP', context: 'POWER_ON', label: 'Start / stop', subtitle: 'Tabule zapnuta',
-      button: 'START / STOP', instruction: 'Třikrát stiskněte tlačítko START / STOP. Během měření neměňte jiné funkce.', samples: 3
+      button: 'START / STOP', instruction: 'Desetkrát krátce stiskněte tlačítko START / STOP. Během měření neměňte jiné funkce.', samples: REQUIRED_SAMPLES
     },
     {
       key: 'ADJUST_ANY', command: 'ADJUST', context: 'ANY', label: 'Nastavení', subtitle: 'Volitelná funkce',
-      button: 'ADJUST', instruction: 'Třikrát stiskněte tlačítko ADJUST. Pokud ho ovladačka nemá, tento krok přeskočte.', samples: 3, optional: true
+      button: 'ADJUST', instruction: 'Desetkrát krátce stiskněte tlačítko ADJUST. Pokud ho ovladačka nemá, tento krok přeskočte.', samples: REQUIRED_SAMPLES, optional: true
     },
     {
       key: 'TIME_ADD_ANY', command: 'TIME_ADD_TENTATIVE', context: 'ANY', label: '+1 minuta', subtitle: 'Předběžné mapování',
-      button: '+1 MINUTA', instruction: 'Třikrát stiskněte tlačítko pro přidání minuty. Funkce je předběžná a krok lze přeskočit.', samples: 3, optional: true, tentative: true
+      button: '+1 MINUTA', instruction: 'Desetkrát krátce stiskněte tlačítko pro přidání minuty. Funkce je předběžná a krok lze přeskočit.', samples: REQUIRED_SAMPLES, optional: true, tentative: true
     }
   ];
 
@@ -129,7 +131,7 @@
 
   function summarizeSamples(samples) {
     if (!Array.isArray(samples) || samples.length < 1 || samples.length > REQUIRED_SAMPLES) {
-      return { safe: false, reason: 'Je potřeba jeden až tři platné RF vzorky.', stability: 0, confidence: 0 };
+      return { safe: false, reason: 'Je potřeba jeden až deset platných RF vzorků.', stability: 0, confidence: 0 };
     }
     const normalized = samples.map(normalizeFrame);
     if (normalized.some(frame => !frame)) return { safe: false, reason: 'Vzorek má neplatný formát.', stability: 0, confidence: 0 };
@@ -137,28 +139,45 @@
     if (aligned.some(frame => !frame)) return { safe: false, reason: 'Ve vzorku nebyl nalezen DERBY sync.', stability: 0, confidence: 0 };
     const lengths = aligned.map(frame => frame.length);
     const targetLength = median(lengths);
-    const lengthSpread = Math.max(...lengths) - Math.min(...lengths);
-    const commonLength = Math.min(...lengths);
+    const lengthTolerance = Math.max(2, Math.round(targetLength * 0.06));
+    const inliers = aligned.filter(frame => Math.abs(frame.length - targetLength) <= lengthTolerance);
+    const requiredInliers = Math.ceil(aligned.length * SAMPLE_AGREEMENT);
+    const inlierLengths = inliers.map(frame => frame.length);
+    const lengthSpread = inlierLengths.length ? Math.max(...inlierLengths) - Math.min(...inlierLengths) : 999;
+    const lengthDeviations = inlierLengths.map(length => Math.abs(length - targetLength));
+    const lengthScore = inlierLengths.length
+      ? clamp(1 - median(lengthDeviations) / Math.max(2, targetLength * 0.05), 0, 1)
+      : 0;
+    const sampleAgreement = inliers.length / aligned.length;
+    const commonLength = inliers.length ? Math.min(...inlierLengths) : 0;
     const candidates = [];
 
     for (let index = SYNC.length; index < commonLength; index += 1) {
-      const levels = aligned.map(frame => frame[index][0]);
-      const values = aligned.map(frame => frame[index][1]);
+      const ones = inliers.filter(frame => frame[index][0] === 1).length;
+      const level = ones >= inliers.length - ones ? 1 : 0;
+      const values = inliers.filter(frame => frame[index][0] === level).map(frame => frame[index][1]);
+      if (!values.length) continue;
       const value = median(values);
-      const range = Math.max(...values) - Math.min(...values);
-      if (levels.every(level => level === levels[0]) && values.every(item => Math.abs(item - value) <= 1)) {
-        candidates.push({ index, level: levels[0], units: value, tolerance: Math.max(1, Math.ceil(range / 2)) });
+      const matching = values.filter(units => Math.abs(units - value) <= 2);
+      if (matching.length >= Math.ceil(inliers.length * SAMPLE_AGREEMENT)) {
+        const deviations = matching.map(units => Math.abs(units - value)).sort((a, b) => a - b);
+        const tolerance = clamp(deviations[Math.max(0, Math.ceil(deviations.length * SAMPLE_AGREEMENT) - 1)] || 1, 1, 2);
+        candidates.push({ index, level, units: value, tolerance });
       }
     }
 
     const inspected = Math.max(1, commonLength - SYNC.length);
     const stability = candidates.length / inspected;
-    const lengthScore = clamp(1 - lengthSpread / Math.max(4, targetLength * 0.1), 0, 1);
-    const confidence = Math.round(100 * (0.55 * stability + 0.45 * lengthScore));
-    const safe = lengthSpread <= 4 && candidates.length >= 5 && stability >= 0.32 && confidence >= 58;
+    const confidence = Math.round(100 * (0.45 * stability + 0.25 * lengthScore + 0.30 * sampleAgreement));
+    const enoughInliers = inliers.length >= requiredInliers;
+    const safe = enoughInliers && candidates.length >= 5 && stability >= 0.30 && confidence >= 65;
     return {
-      safe, reason: safe ? '' : lengthSpread > 4 ? 'Délky tří vzorků se příliš liší.' : 'Vzorky nejsou dostatečně stabilní.',
-      aligned, lengths, frameLength: targetLength, lengthSpread, candidates, stability, confidence
+      safe,
+      reason: safe ? '' : !enoughInliers
+        ? `Pouze ${inliers.length} z ${aligned.length} vzorků má shodnou délku; je potřeba alespoň ${requiredInliers}.`
+        : 'Alespoň 80 % vzorků nemá dostatek společných stabilních bodů.',
+      aligned: inliers, allAligned: aligned, lengths, frameLength: targetLength, lengthSpread,
+      lengthScore, sampleAgreement, candidates, stability, confidence
     };
   }
 
@@ -172,12 +191,18 @@
     return level === point.level && Math.abs(units - point.units) <= point.tolerance;
   }
 
+  function pointMatchesSummary(point, summary) {
+    const frames = summary?.aligned || [];
+    if (!frames.length) return false;
+    return frames.filter(frame => pointMatchesFrame(point, frame)).length >= Math.ceil(frames.length * SAMPLE_AGREEMENT);
+  }
+
   function buildVariantAnalyses() {
     const bases = [];
     for (const entry of state.collected.values()) {
       if (entry.samples.length !== REQUIRED_SAMPLES) continue;
       const summary = summarizeSamples(entry.samples);
-      bases.push({ ...entry, summary, canonical: summary.aligned ? summary.aligned[1] : null });
+      bases.push({ ...entry, summary });
     }
 
     return bases.map(target => {
@@ -187,7 +212,7 @@
       const signature = [];
       const candidates = target.summary.candidates.map(point => ({
         ...point,
-        covers: competitors.map((competitor, index) => competitor.summary.aligned?.some(frame => pointMatchesFrame(point, frame)) ? null : index).filter(index => index !== null)
+        covers: competitors.map((competitor, index) => pointMatchesSummary(point, competitor.summary) ? null : index).filter(index => index !== null)
       }));
 
       while (uncovered.size && signature.length < MAX_SIGNATURE_POINTS) {
@@ -209,9 +234,9 @@
       const signatureScore = clamp(signature.length / 4, 0, 1);
       const confidence = Math.round(100 * (
         0.30 * target.summary.stability +
-        0.25 * clamp(1 - target.summary.lengthSpread / 5, 0, 1) +
+        0.20 * target.summary.lengthScore +
         0.35 * uniqueness +
-        0.10 * signatureScore
+        0.15 * signatureScore
       ));
       const safe = uncovered.size === 0 && signature.length >= 3 && confidence >= MIN_CONFIDENCE;
       return {
@@ -258,7 +283,7 @@
       commands: [...grouped.entries()].map(([command, variants]) => ({ command, variants })),
       calibration: {
         samples_per_variant: REQUIRED_SAMPLES,
-        algorithm: 'stable-greedy-unique-v1',
+        algorithm: 'robust-80pct-greedy-unique-v2',
         skipped_steps: [...state.skipped]
       },
       analysis: analyses.map(item => ({
@@ -368,7 +393,7 @@
             ${connectionBadge()}
           </div>
           <div class="cal-feature-list">
-            <div class="cal-feature"><i>3×</i><div><strong>Tři vzorky každého tlačítka</strong><span>Kontrola délky, stability a opakovatelnosti.</span></div></div>
+            <div class="cal-feature"><i>10×</i><div><strong>Deset vzorků každého tlačítka</strong><span>Robustní 80% shoda odfiltruje jednotlivé nepovedené stisky.</span></div></div>
             <div class="cal-feature"><i>⌁</i><div><strong>Deterministický unikátní podpis</strong><span>Profil používá jen stabilní pozice odlišné od ostatních příkazů.</span></div></div>
             <div class="cal-feature"><i>✓</i><div><strong>Bezpečné uložení do zařízení</strong><span>Chunky, pořadí a CRC32 se ověří před zápisem do NVS.</span></div></div>
           </div>
@@ -386,6 +411,7 @@
   }
 
   function openLanding(message = '', tone = '') {
+    document.getElementById('appModal')?.classList.add('calibration-modal');
     state.view = 'landing';
     state.alert = message;
     state.alertTone = tone;
@@ -465,7 +491,7 @@
     const count = stepSampleCount(step);
     const summary = currentStepSummary(step);
     const progress = Math.round(100 * count / step.samples);
-    const powerCounts = step.sequence ? `<div class="cal-power-counts"><span>POWER ON <b>${state.collected.get(variantKey('POWER_ON', 'ANY'))?.samples.length || 0}/3</b></span><span>POWER OFF <b>${state.collected.get(variantKey('POWER_OFF', 'ANY'))?.samples.length || 0}/3</b></span></div>` : '';
+    const powerCounts = step.sequence ? `<div class="cal-power-counts"><span>POWER ON <b>${state.collected.get(variantKey('POWER_ON', 'ANY'))?.samples.length || 0}/${REQUIRED_SAMPLES}</b></span><span>POWER OFF <b>${state.collected.get(variantKey('POWER_OFF', 'ANY'))?.samples.length || 0}/${REQUIRED_SAMPLES}</b></span></div>` : '';
     const alert = state.alert ? `<div class="cal-alert ${html(state.alertTone)}">${html(state.alert)}</div>` : '';
     return `
       <div class="calibration-wizard">
@@ -477,7 +503,13 @@
         <main class="cal-main">
           <div class="cal-topline">
             <div><span class="cal-kicker">Krok ${state.activeStep + 1} z ${steps.length} · ${html(step.subtitle)}</span><h3>${html(step.label)}</h3><p class="cal-lead">${html(expectedInstruction(step))}</p></div>
-            ${connectionBadge()}
+            <div class="cal-top-status">
+              <div class="cal-progress-hero">
+                <div><span>Průběh kroku</span><strong>${progress}%</strong><small>${count} z ${step.samples} stisků</small></div>
+                <i><b style="width:${progress}%"></b></i>
+              </div>
+              ${connectionBadge()}
+            </div>
           </div>
           <div class="cal-work-grid">
             <section class="cal-card cal-instruction">
@@ -499,8 +531,8 @@
               </div>
             </section>
           </div>
-          <section class="cal-card cal-progress-wrap">
-            <div class="cal-progress-head"><strong>Průběh kroku</strong><span>${progress}%</span></div>
+          <section class="cal-card cal-progress-wrap cal-progress-bottom">
+            <div class="cal-progress-head"><strong>Celkový průběh tohoto kroku</strong><span>${count} / ${step.samples} · ${progress}%</span></div>
             <div class="cal-progress"><i style="width:${progress}%"></i></div>
           </section>
           ${alert}
@@ -512,10 +544,10 @@
     const step = currentStep();
     const complete = state.completed.has(step.key);
     return `
-      <button data-calibration-action="cancel">Zrušit kalibraci</button>
-      <button data-calibration-action="retry" ${state.running && state.deviceReady && admin.isConnected() ? '' : 'disabled'}>Zopakovat krok</button>
-      ${step.optional ? '<button data-calibration-action="skip">Přeskočit volitelnou funkci</button>' : ''}
-      <button class="modal-confirm" data-calibration-action="next" ${complete ? '' : 'disabled'}>${state.activeStep === steps.length - 1 ? 'Vyhodnotit profil' : 'Pokračovat'}</button>`;
+      <button class="cal-footer-cancel" data-calibration-action="cancel">Zrušit kalibraci</button>
+      <button class="cal-footer-retry" data-calibration-action="retry" ${state.running && state.deviceReady && admin.isConnected() ? '' : 'disabled'}>Zopakovat krok</button>
+      ${step.optional ? '<button class="cal-footer-skip" data-calibration-action="skip">Přeskočit volitelnou funkci</button>' : ''}
+      <button class="modal-confirm cal-footer-next" data-calibration-action="next" ${complete ? '' : 'disabled'}>${state.activeStep === steps.length - 1 ? 'Vyhodnotit profil' : 'Pokračovat'}</button>`;
   }
 
   function renderWizard() {
@@ -596,7 +628,7 @@
       const index = sourceStepIndex(variant.command, variant.context);
       const canRemeasure = !state.upload && state.profileSource === 'calibration' && state.collected.size > 0 && index >= 0;
       return `<div class="cal-command-row">
-        <div><b>${html(variant.command)}</b>${variantSafe || !canRemeasure ? '' : `<br><button data-calibration-action="remeasure" data-step-index="${index}">Změřit znovu</button>`}</div>
+        <div><b>${html(variant.command)}</b>${variantSafe ? '' : `<small class="cal-row-reason">${html(variant.reason || 'Podpis není bezpečně jedinečný.')}</small>`}${variantSafe || !canRemeasure ? '' : `<br><button data-calibration-action="remeasure" data-step-index="${index}">Změřit znovu</button>`}</div>
         <span>${html(variant.context)}</span>
         <span>${variant.signature?.length || 0} bodů</span>
         <span class="${scoreClass(variant.confidence || 0, variantSafe)}">${variant.confidence || 0}%</span>
@@ -727,7 +759,7 @@
     state.view = 'wizard';
     admin.setModalView('calibration-wizard');
     admin.showModal({ eyebrow: 'RF learning / živé měření', title: 'Kalibrace ovladačky', fullscreen: true, body: wizardBody(), footer: wizardFooter() });
-    publishLearn('start', { timeout_s: 600, base_time_us: 830, max_frame_pairs: MAX_FRAME_PAIRS });
+    publishLearn('start', { timeout_s: LEARNING_TIMEOUT_SECONDS, base_time_us: 830, max_frame_pairs: MAX_FRAME_PAIRS });
     armOperationTimeout(12000, () => {
       if (!state.running || state.deviceReady) return;
       state.alert = 'Zařízení nepotvrdilo spuštění learning režimu. Kalibraci můžete zrušit a spustit znovu.';
@@ -825,7 +857,7 @@
     state.view = 'wizard';
     admin.setModalView('calibration-wizard');
     renderWizard();
-    publishLearn('start', { timeout_s: 600, base_time_us: 830, max_frame_pairs: MAX_FRAME_PAIRS });
+    publishLearn('start', { timeout_s: LEARNING_TIMEOUT_SECONDS, base_time_us: 830, max_frame_pairs: MAX_FRAME_PAIRS });
     armOperationTimeout(12000, () => {
       if (!state.running || state.deviceReady) return;
       state.alert = 'Zařízení nepotvrdilo novou learning relaci.';
@@ -870,6 +902,9 @@
     if (!storeSample(step, expectedCommand, frame)) return;
     state.pendingCapture = null;
     state.latestFrame = frame;
+    window.dispatchEvent(new CustomEvent('scorebridge:rf-frame', { detail: {
+      frame, command: expectedCommand, context: data.context, sampleIndex: data.sample_index
+    }}));
     state.listening = false;
     state.alert = `Vzorek ${stepSampleCount(step)} z ${step.samples} byl přijat.`;
     state.alertTone = 'success';
@@ -1237,7 +1272,7 @@
         <span class="cal-kicker">Deterministický postup</span><h3>Od pulzů k bezpečnému podpisu.</h3>
         <div class="cal-feature-list" style="max-width:820px">
           <div class="cal-feature"><i>1</i><div><strong>Zarovnání podle DERBY syncu</strong><span>Každý frame začíná sekvencí 0:1, 1:1, 0:7, 1:1 s tolerancí jedné jednotky.</span></div></div>
-          <div class="cal-feature"><i>2</i><div><strong>Stabilita tří vzorků</strong><span>Zůstanou jen pozice se stejnou úrovní a opakovatelnou délkou pulzu.</span></div></div>
+          <div class="cal-feature"><i>2</i><div><strong>Robustní shoda deseti vzorků</strong><span>Zůstanou pozice, které se shodují alespoň v 80 % platných měření.</span></div></div>
           <div class="cal-feature"><i>3</i><div><strong>Porovnání příkazů</strong><span>Greedy set-cover vybere nejmenší sadu stabilních pozic, která odliší všechny překrývající se kontexty.</span></div></div>
           <div class="cal-feature"><i>4</i><div><strong>Validace před aktivací</strong><span>Zařízení přijme profil po sekvenčních chuncích, ověří limity, JSON i CRC32 a teprve potom zapíše NVS.</span></div></div>
         </div>
@@ -1289,7 +1324,7 @@
       state.alert = 'Spojení je obnoveno. Obnovuji stejnou learning relaci a zachovávám již dokončené kroky…';
       state.alertTone = '';
       renderWizard();
-      publishLearn('start', { timeout_s: 600, base_time_us: 830, max_frame_pairs: MAX_FRAME_PAIRS });
+      publishLearn('start', { timeout_s: LEARNING_TIMEOUT_SECONDS, base_time_us: 830, max_frame_pairs: MAX_FRAME_PAIRS });
       armOperationTimeout(12000, () => {
         if (!state.running || state.deviceReady) return;
         state.alert = 'Zařízení po obnovení spojení nepotvrdilo learning režim.';
@@ -1368,6 +1403,7 @@
     state.factoryTransferId = '';
     state.factoryArmed = false;
     state.view = 'closed';
+    document.getElementById('appModal')?.classList.remove('calibration-modal');
   };
 
   document.addEventListener('scorebridge:modal-before-close', event => {
