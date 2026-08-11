@@ -311,9 +311,11 @@
     if(data.batt_pct===undefined&&data.batt_mv===undefined&&data.batt_valid===undefined) return;
     const pct=Number(data.batt_pct),mv=Number(data.batt_mv);
     const valid=data.batt_valid!==false&&Number.isFinite(pct)&&pct>=0&&pct<=100&&Number.isFinite(mv)&&mv>=3000&&mv<=4400;
+    const source=data.batt_source==='sim7600_at_cbc'?'SIM7600 AT+CBC':
+      data.batt_source==='esp32_adc_gpio35'?'GPIO35':String(data.batt_source||'neuvedeno');
     $('batt').textContent=valid?Math.round(pct):'–';
     $('battmv').textContent=Number.isFinite(mv)&&mv>0?Math.round(mv):'–';
-    $('batt').title=valid?`Měřeno z GPIO35: ${Math.round(mv)} mV`:'Měření baterie není platné';
+    $('batt').title=valid?`Měřeno přes ${source}: ${Math.round(mv)} mV`:`Neplatné měření baterie (${source})`;
     if(valid) push(chB,Math.round(pct));
   }
 
@@ -551,7 +553,7 @@
     } else if(view==='battery'){
       config={eyebrow:'Diagnostika napájení',title:'Stav baterie',body:`
         <div class="modal-overview-grid">${modalStat('Kapacita',battery,'on')}${modalStat('Napětí',modalText('battmv')+' mV')}${modalStat('Uptime',uptime)}${modalStat('Poslední akce',modalText('lastAction'))}</div>
-        <div class="modal-note">Napětí se měří na bateriovém vstupu GPIO35 přes dělič desky. Neplatná hodnota se nezobrazí jako falešných 0 %. Graf uchovává posledních 30 platných vzorků.</div>`};
+        <div class="modal-note">Napětí se čte přímo ze SIM7600 příkazem AT+CBC. Neplatná hodnota se nezobrazí jako falešných 0 %. Graf uchovává posledních 30 platných vzorků.</div>`};
     } else if(view==='connection'){
       const connected=$('conn').classList.contains('on');
       config={eyebrow:'MQTT připojení',title:'Stav připojení',body:`
