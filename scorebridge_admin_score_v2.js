@@ -943,7 +943,6 @@
     if(!DEVICE_ID_PATTERN.test(nextId)) return;
     try{ localStorage.setItem('scorebridge.deviceId',nextId); }catch(_error){}
     const targetUrl=new URL(window.location.href);
-    targetUrl.pathname=targetUrl.pathname.replace(/time-test\.html$/,'index.html');
     targetUrl.searchParams.set('device',nextId);
     window.location.assign(targetUrl.toString());
   }
