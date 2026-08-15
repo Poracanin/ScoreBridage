@@ -26,8 +26,9 @@
         <a class="side-link" href="#scoreboard" data-modal-view="score"><span class="nav-icon">◫</span>Živé skóre</a>
         <a class="side-link" href="#device-controls" data-modal-view="controls"><span class="nav-icon">⌁</span>Ovládání zařízení</a>
         <a class="side-link" href="#calibration" data-calibration-open><span class="nav-icon">⌾</span>Kalibrace ovladačky</a>
+        <a class="side-link" href="#event-timeline"><span class="nav-icon">⌁</span>Časová osa tlačítek</a>
         <a class="side-link" href="#telemetry" data-modal-view="telemetry"><span class="nav-icon">⌇</span>Telemetrie</a>
-        <a class="side-link" href="#message-log" data-modal-view="log"><span class="nav-icon">≡</span>Log zpráv <span class="side-count">20</span></a>
+        <a class="side-link" href="#message-log" data-modal-view="log"><span class="nav-icon">≡</span>Log zápasu <span class="side-count">CSV</span></a>
       </div>
       <div class="nav-group">
         <div class="nav-group-title">Technické údaje</div>
@@ -78,6 +79,7 @@
           <p>Živý stav tabule, časomíry, skóre a telemetrie zařízení.</p>
         </div>
         <div class="heading-actions">
+          <button onclick="openDeviceSelector()">Vybrat zařízení</button>
           <button onclick="cmd('gps')">Aktualizovat polohu</button>
           <button class="dark-action" onclick="cmd('all')">Načíst aktuální stav</button>
         </div>
@@ -161,6 +163,26 @@
         </aside>
       </section>
 
+      <section class="engineering-section timeline-section" id="event-timeline">
+        <div class="section-bar timeline-section-bar">
+          <div>
+            <h2>Časová osa tlačítek</h2>
+            <span id="timelineSummary">Načte se z trvalého logu v zařízení</span>
+          </div>
+          <button class="timeline-load" id="loadDeviceTimeline" onclick="loadDeviceTimeline()">Načíst časovou osu</button>
+        </div>
+        <div class="timeline-card">
+          <div class="timeline-empty" id="timelineEmpty">Klikněte na „Načíst časovou osu“. Administrace stáhne uložený log ze ScoreBridge.</div>
+          <div class="timeline-scroll" id="timelineScroll" hidden>
+            <div class="timeline-plot" id="timelinePlot" role="img" aria-label="Časová osa stisků tlačítek"></div>
+          </div>
+          <div class="timeline-legend">
+            <span><i class="goal"></i>gól</span><span><i class="clock"></i>čas</span>
+            <span><i class="power"></i>zapnutí/vypnutí</span><span><i class="unknown"></i>neidentifikované tlačítko</span>
+          </div>
+        </div>
+      </section>
+
       <section class="engineering-section" id="telemetry">
         <div class="section-bar"><h2>Systémová telemetrie</h2><span>Živé sledování / 30 vzorků</span></div>
         <div class="grid2">
@@ -184,8 +206,11 @@
 
       <section class="panel log-panel" id="message-log">
         <div class="log-head">
-          <div class="log-meta"><div class="title" style="margin:0">Historie příkazů</div><span>20 posledních záznamů</span></div>
-          <button class="ghost" onclick="document.getElementById('log').innerHTML=''">Vyčistit</button>
+          <div class="log-meta"><div class="title" style="margin:0">Audit zápasu</div><span id="deviceLogState">čekám na zařízení</span></div>
+          <div class="log-actions">
+            <button class="ghost log-download" id="downloadDeviceLog" onclick="downloadDeviceAuditLog()">Stáhnout CSV ze zařízení</button>
+            <button class="ghost" onclick="document.getElementById('log').innerHTML=''">Vyčistit výpis</button>
+          </div>
         </div>
         <div id="log"></div>
       </section>

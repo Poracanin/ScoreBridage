@@ -1,10 +1,16 @@
-  // ---- musí sedět s firmwarem ----
-  const DEVICE_ID = "sb-test-7431";
+  // Jednotka se voli parametrem ?device=sb-...; posledni volba se pamatuje.
+  const DEVICE_ID_PATTERN=/^[a-z0-9][a-z0-9_-]{2,39}$/i;
+  const requestedDeviceId=new URLSearchParams(window.location.search).get('device')||'';
+  let storedDeviceId='';
+  try{ storedDeviceId=localStorage.getItem('scorebridge.deviceId')||''; }catch(_error){}
+  const DEVICE_ID=(DEVICE_ID_PATTERN.test(requestedDeviceId)?requestedDeviceId:
+    DEVICE_ID_PATTERN.test(storedDeviceId)?storedDeviceId:'sb-test-7431').toLowerCase();
   const BROKER    = "wss://broker.hivemq.com:8884/mqtt";
-  // --------------------------------
   const T_CMD    = `scorebridge/${DEVICE_ID}/cmd`;
   const T_STATUS = `scorebridge/${DEVICE_ID}/status`;
   const T_EVENT  = `scorebridge/${DEVICE_ID}/event`;
+  const T_LOG_STATUS = `scorebridge/${DEVICE_ID}/log/status`;
+  const T_LOG_DATA = `scorebridge/${DEVICE_ID}/log/data`;
   const T_LEARN_CMD = `scorebridge/${DEVICE_ID}/learn/cmd`;
   const T_LEARN_STATUS = `scorebridge/${DEVICE_ID}/learn/status`;
   const T_LEARN_SAMPLE = `scorebridge/${DEVICE_ID}/learn/sample`;
@@ -288,14 +294,91 @@
     MANUAL_SCORE_RESET:'Skóre vynulováno',LOCAL_SCORE_RESET:'Lokální nulování skóre',
     DEVICE_ON:'Zařízení zapnuto',DEVICE_OFF:'Zařízení vypnuto',
     CLOCK_START:'Čas spuštěn',CLOCK_STOP:'Čas zastaven',CLOCK_TOGGLE:'Přepnutí času',CLOCK_RESET:'Čas vynulován',
+    MATCH_START:'Začátek zápasu',CLOCK_PAUSE:'Čas pozastaven',CLOCK_RESUME:'Čas pokračuje',
+    SECOND_HALF_START:'Začátek 2. poločasu',SCOREBRIDGE_BOOT:'ScoreBridge spuštěn',
     HALFTIME_WAIT:'Poločas – odpočet',HALFTIME:'Poločas',MATCH_END_WAIT:'Konec – odpočet',MATCH_END:'Konec zápasu',
-    GPS_ON:'GPS zapnuto',GPS_OFF:'GPS vypnuto',REBOOTING:'Restart zařízení',UNKNOWN:'Neznámý RF příkaz'
+    GPS_ON:'GPS zapnuto',GPS_OFF:'GPS vypnuto',REBOOTING:'Restart zařízení',UNKNOWN:'Neidentifikované tlačítko'
   };
   let commandHistory=[];
   let lastNormalizedRfFrame=[];
   let lastNormalizedRfMeta='Čekám na kalibrační vzorek';
   const commandLabel=value=>COMMAND_LABELS[value]||String(value||'–').replaceAll('_',' ');
   const commandMatchTime=seconds=>formatMatchTime(Math.max(0,Number(seconds)||0)*1000);
+  let timelineEvents=[];
+  const timelineClock=value=>{
+    const match=String(value||'').match(/(?:^|\s)(\d{2}:\d{2}:\d{2})(?:\s|$)/);
+    return match?match[1]:'bez času';
+  };
+  const timelineColor=event=>{
+    if(event==='UNKNOWN') return '#d64555';
+    if(event==='HOME_PLUS'||event==='AWAY_PLUS') return '#65a30d';
+    if(event.includes('POWER')||event.includes('DEVICE')) return '#d08a00';
+    if(event.includes('CLOCK')||event==='START_STOP'||event.includes('TIME')) return '#1488a8';
+    return '#67717e';
+  };
+  const timelineEventLabel=row=>{
+    if(row.event==='START_STOP'&&row.action&&row.action!=='-') return commandLabel(row.action);
+    return commandLabel(row.event);
+  };
+  function parseAuditCsv(csvText){
+    const lines=String(csvText||'').replace(/^\uFEFF/,'').split(/\r?\n/).filter(Boolean);
+    if(lines.length<2) return [];
+    const headers=lines[0].split(',').map(value=>value.trim());
+    return lines.slice(1).map(line=>{
+      const values=line.split(','),row={};
+      headers.forEach((header,index)=>row[header]=(values[index]??'').trim());
+      row.sequence=Number(row.sequence);
+      row.epoch=Number(row.utc_epoch);
+      row.matchSeconds=Number(row.match_s);
+      row.time=timelineClock(row.local_time);
+      row.label=timelineEventLabel(row);
+      row.color=timelineColor(row.event||'');
+      return row;
+    }).filter(row=>row.event&&(row.source!=='SYSTEM'||!row.source));
+  }
+  function renderAuditTimeline(rows){
+    timelineEvents=rows;
+    const empty=$('timelineEmpty'),scroll=$('timelineScroll'),plot=$('timelinePlot'),summary=$('timelineSummary');
+    plot.replaceChildren();
+    if(!rows.length){
+      scroll.hidden=true; empty.hidden=false;
+      empty.textContent='V logu zatím nejsou žádné stisky tlačítek.';
+      summary.textContent='0 zaznamenaných stisků';
+      return;
+    }
+    empty.hidden=true; scroll.hidden=false;
+    plot.style.width=Math.max(scroll.clientWidth||900,rows.length*165+136)+'px';
+    rows.forEach(row=>{
+      const event=document.createElement('div'); event.className='timeline-event'; event.tabIndex=0;
+      event.style.setProperty('--event-color',row.color);
+      event.title=`${row.local_time}\n${row.label}\nTlačítko: ${row.event}${row.action&&row.action!=='-'?`\nAkce: ${commandLabel(row.action)}`:''}\nČas zápasu: ${commandMatchTime(row.matchSeconds)}`;
+      const label=document.createElement('div'); label.className='timeline-event-label';
+      const timeTop=document.createElement('strong'); timeTop.textContent=row.time;
+      const name=document.createElement('span'); name.textContent=row.label;
+      label.append(timeTop,name);
+      const stem=document.createElement('i'); stem.className='timeline-event-stem';
+      const dot=document.createElement('i'); dot.className='timeline-event-dot';
+      const axis=document.createElement('time'); axis.className='timeline-event-axis'; axis.textContent=row.time;
+      const detail=document.createElement('div'); detail.className='timeline-event-detail';
+      detail.textContent=`zápas ${commandMatchTime(row.matchSeconds)} · ${row.source||'zdroj neznámý'}`;
+      event.append(label,stem,dot,axis,detail); plot.append(event);
+    });
+    summary.textContent=`${rows.length} stisků · ${rows[0].time} až ${rows.at(-1).time}`;
+    scroll.scrollLeft=scroll.scrollWidth;
+  }
+  function addLiveTimelineEvent(data){
+    if(!data?.event||data.source==='SYSTEM') return;
+    const sequence=Number(data.event_seq);
+    if(Number.isFinite(sequence)&&timelineEvents.some(row=>row.sequence===sequence)) return;
+    const row={
+      sequence,event:String(data.event),action:String(data.action||'-'),source:String(data.source||'DERBY'),
+      local_time:String(data.wall_time||''),matchSeconds:Number(data.match_elapsed_s)
+    };
+    row.time=timelineClock(row.local_time);
+    row.label=timelineEventLabel(row);
+    row.color=timelineColor(row.event);
+    renderAuditTimeline([...timelineEvents,row]);
+  }
   const serialTimestamp=(date=new Date())=>
     String(date.getHours()).padStart(2,'0')+':'+String(date.getMinutes()).padStart(2,'0')+':'+
     String(date.getSeconds()).padStart(2,'0')+'.'+String(date.getMilliseconds()).padStart(3,'0');
@@ -374,7 +457,7 @@
     const matchSeconds=Number.isFinite(Number(data.match_elapsed_s))?Number(data.match_elapsed_s):0;
     if(!commandHistory.some(item=>item.seq===seq)) commandHistory.push({seq,event,match_s:matchSeconds});
     commandHistory=commandHistory.sort((a,b)=>a.seq-b.seq).slice(-8);
-    setLastCommand(event); renderCommandHistory();
+    setLastCommand(data.action||event); renderCommandHistory();
   }
   function setDeviceEnabled(on){
     deviceEnabledState=!!on;
@@ -398,13 +481,125 @@
     if(valid) push(chB,Math.round(pct));
   }
 
+  // ---- TRVALY AUDITNI LOG ZE ZARIZENI ----
+  let auditTransfer=null;
+  const formatLogBytes=value=>{
+    const bytes=Number(value);
+    if(!Number.isFinite(bytes)||bytes<0) return 'neznámá velikost';
+    if(bytes<1024) return Math.round(bytes)+' B';
+    if(bytes<1024*1024) return (bytes/1024).toFixed(1)+' kB';
+    return (bytes/(1024*1024)).toFixed(1)+' MB';
+  };
+  function setAuditLogState(text,tone=''){
+    const state=$('deviceLogState');
+    if(state){ state.textContent=text; state.className=tone?`is-${tone}`:''; }
+  }
+  function setAuditDownloadBusy(busy){
+    const downloadButton=$('downloadDeviceLog'),timelineButton=$('loadDeviceTimeline');
+    if(downloadButton){ downloadButton.disabled=busy; downloadButton.textContent=busy&&auditTransfer?.purpose==='download'?'Stahuji log…':'Stáhnout CSV ze zařízení'; }
+    if(timelineButton){ timelineButton.disabled=busy; timelineButton.textContent=busy&&auditTransfer?.purpose==='timeline'?'Načítám časovou osu…':'Načíst časovou osu'; }
+  }
+  function failAuditDownload(message){
+    const purpose=auditTransfer?.purpose;
+    if(auditTransfer?.timeoutId) clearTimeout(auditTransfer.timeoutId);
+    auditTransfer=null;
+    setAuditDownloadBusy(false);
+    setAuditLogState(message,'error');
+    if(purpose==='timeline') $('timelineSummary').textContent=message;
+    log('Auditní log: '+message);
+  }
+  function armAuditDownloadTimeout(){
+    if(!auditTransfer) return;
+    if(auditTransfer.timeoutId) clearTimeout(auditTransfer.timeoutId);
+    auditTransfer.timeoutId=setTimeout(()=>failAuditDownload('stahování vypršelo'),30000);
+  }
+  function beginAuditTransfer(purpose){
+    if(!client.connected){ setAuditLogState('zařízení není připojeno','error'); return log('Nelze načíst log: MQTT není připojeno'); }
+    if(auditTransfer) return log('Stahování auditního logu již probíhá');
+    const transferId=`web-${Date.now().toString(36)}-${Math.random().toString(36).slice(2,8)}`;
+    auditTransfer={id:transferId,purpose,totalChunks:null,totalBytes:null,filename:`scorebridge-${DEVICE_ID}-log.csv`,chunks:new Map(),timeoutId:null};
+    setAuditDownloadBusy(true);
+    setAuditLogState(purpose==='timeline'?'načítám časovou osu':'zahajuji stahování','loading');
+    if(purpose==='timeline') $('timelineSummary').textContent='Stahuji trvalý log ze zařízení…';
+    armAuditDownloadTimeout();
+    client.publish(T_CMD,`log_download:${transferId}`,{qos:0,retain:false});
+    log(purpose==='timeline'?'→ požadavek na časovou osu':'→ požadavek na stažení trvalého logu');
+  }
+  function downloadDeviceAuditLog(){ beginAuditTransfer('download'); }
+  function loadDeviceTimeline(){ beginAuditTransfer('timeline'); }
+  async function finishAuditDownload(){
+    if(!auditTransfer) return;
+    const transfer=auditTransfer;
+    if(!Number.isInteger(transfer.totalChunks)||transfer.totalChunks<1||transfer.chunks.size!==transfer.totalChunks){
+      const expected=Number.isInteger(transfer.totalChunks)?transfer.totalChunks:'?';
+      return failAuditDownload(`chybí MQTT bloky (${transfer.chunks.size}/${expected})`);
+    }
+    const ordered=[];
+    for(let index=0;index<transfer.totalChunks;index++){
+      const chunk=transfer.chunks.get(index);
+      if(!chunk) return failAuditDownload(`chybí blok ${index+1}`);
+      ordered.push(chunk);
+    }
+    const blob=new Blob(ordered,{type:'text/csv;charset=utf-8'});
+    if(transfer.timeoutId) clearTimeout(transfer.timeoutId);
+    const csvText=await blob.text();
+    renderAuditTimeline(parseAuditCsv(csvText));
+    if(transfer.purpose==='download'){
+      const link=document.createElement('a');
+      const objectUrl=URL.createObjectURL(blob);
+      link.href=objectUrl;
+      link.download=String(transfer.filename||`scorebridge-${DEVICE_ID}-log.csv`).replace(/[^a-zA-Z0-9._-]/g,'_');
+      document.body.append(link); link.click(); link.remove();
+      setTimeout(()=>URL.revokeObjectURL(objectUrl),1000);
+    }
+    auditTransfer=null;
+    setAuditDownloadBusy(false);
+    setAuditLogState(transfer.purpose==='download'?`staženo ${formatLogBytes(blob.size)}`:`časová osa načtena · ${formatLogBytes(blob.size)}`,'ready');
+    log(transfer.purpose==='download'?`Auditní CSV staženo (${formatLogBytes(blob.size)})`:`Časová osa načtena z trvalého logu (${formatLogBytes(blob.size)})`);
+  }
+  function handleAuditLogMessage(topic,message){
+    if(topic===T_LOG_STATUS){
+      let status;
+      try{ status=JSON.parse(message.toString()); }catch(_error){ return failAuditDownload('neplatná odpověď zařízení'); }
+      if(status.type==='info'&&!auditTransfer){
+        setAuditLogState(`uloženo ${formatLogBytes(status.total_bytes)}`,'ready');
+        return;
+      }
+      if(!auditTransfer||status.transfer_id!==auditTransfer.id) return;
+      if(status.type==='error') return failAuditDownload(`chyba zařízení: ${status.error||'neznámá chyba'}`);
+      if(status.type==='download_begin'){
+        auditTransfer.totalChunks=Number(status.chunks);
+        auditTransfer.totalBytes=Number(status.total_bytes);
+        auditTransfer.filename=status.filename||auditTransfer.filename;
+        setAuditLogState(`přijímám 0/${auditTransfer.totalChunks} bloků`,'loading');
+        armAuditDownloadTimeout();
+      }else if(status.type==='download_complete'){
+        auditTransfer.totalChunks=Number(status.chunks);
+        auditTransfer.totalBytes=Number(status.total_bytes);
+        setTimeout(finishAuditDownload,150);
+      }
+      return;
+    }
+
+    const prefix=T_LOG_DATA+'/';
+    if(!topic.startsWith(prefix)||!auditTransfer) return;
+    const parts=topic.slice(prefix.length).split('/');
+    if(parts.length!==2||parts[0]!==auditTransfer.id) return;
+    const index=Number(parts[1]);
+    if(!Number.isInteger(index)||index<0) return;
+    auditTransfer.chunks.set(index,new Uint8Array(message));
+    const expected=Number.isInteger(auditTransfer.totalChunks)?auditTransfer.totalChunks:'?';
+    setAuditLogState(`přijímám ${auditTransfer.chunks.size}/${expected} bloků`,'loading');
+    armAuditDownloadTimeout();
+  }
+
   // ---- MQTT ----
   const client = mqtt.connect(BROKER, { clientId:'panel-'+Math.random().toString(16).slice(2) });
   client.on('connect', ()=>{ setConn(true); log('Připojeno k brokeru');
-    client.subscribe([T_STATUS,T_EVENT,T_LEARN_STATUS,T_LEARN_SAMPLE,T_PROFILE_STATUS,`${T_PROFILE_DATA}/#`],
+    client.subscribe([T_STATUS,T_EVENT,T_LOG_STATUS,`${T_LOG_DATA}/#`,T_LEARN_STATUS,T_LEARN_SAMPLE,T_PROFILE_STATUS,`${T_PROFILE_DATA}/#`],
       error=>log(error?'Chyba odběru MQTT: '+error.message:'Poslouchám stav, DERBY události a kalibraci'));
     notifyMqttConnection(true);
-    cmd('all'); });
+    cmd('all'); cmd('log_info'); });
   client.on('reconnect', ()=>log('Znovupřipojování…'));
   client.on('close', ()=>{ setConn(false); notifyMqttConnection(false); });
   client.on('error', e=>log('Chyba: '+e));
@@ -413,6 +608,7 @@
     mqttExtensionListeners.forEach(listener=>{
       try{ listener(t,msg); }catch(error){ log('Chyba doplňku: '+error.message); }
     });
+    if(t===T_LOG_STATUS||t.startsWith(T_LOG_DATA+'/')) return handleAuditLogMessage(t,msg);
     if(t!==T_STATUS&&t!==T_EVENT) return;
     const rawMessage=msg.toString();
     let d; try{ d=JSON.parse(rawMessage); }catch(e){ return log('Neplatná zpráva'); }
@@ -442,13 +638,19 @@
       updateScoreboardState();
     }
 
+    if(d.log_ready===false) setAuditLogState('úložiště logu není dostupné','error');
+    else if(d.log_bytes!==undefined&&!auditTransfer) setAuditLogState(`uloženo ${formatLogBytes(d.log_bytes)}`,'ready');
+
     if(Array.isArray(d.event_history)) syncCommandHistory(d.event_history);
     if(d.last_event&&!d.event) setLastCommand(d.last_event);
-    if(d.event) setLastCommand(d.event);
+    if(d.event) setLastCommand(d.action||d.event);
 
     if(t===T_EVENT){
       addCommandEvent(d);
-      log('⚽ Příkaz: '+commandLabel(d.event||'?')+' · '+(d.home??'?')+':'+(d.away??'?'));
+      addLiveTimelineEvent(d);
+      const semanticAction=d.action?` · ${commandLabel(d.action)}`:'';
+      const deviceTime=d.wall_time?` · ${d.wall_time}`:'';
+      log('⚽ Příkaz: '+commandLabel(d.event||'?')+semanticAction+' · '+(d.home??'?')+':'+(d.away??'?')+deviceTime);
       return;
     }
 
@@ -543,6 +745,33 @@
     modalReturnFocus=null;
   }
 
+  function openDeviceSelector(){
+    activeModalView='select-device';
+    showAppModal({eyebrow:'Dvě testovací jednotky',title:'Vybrat ScoreBridge',compact:true,body:`
+      <div class="device-selector-form">
+        <label for="deviceIdChoice">ID zařízení ze Serial Monitoru</label>
+        <input id="deviceIdChoice" type="text" value="${escapeModalHtml(DEVICE_ID)}" placeholder="sb-a1b2c3d4e5f6" autocomplete="off" spellcheck="false" onkeydown="if(event.key==='Enter') confirmDeviceSelector()">
+        <small>Po zapnutí firmware vypíše řádek „ID ZARIZENI“. Každé ESP32 má jiné a stálé ID.</small>
+        <div class="device-selector-error" id="deviceSelectorError" role="alert"></div>
+      </div>`,footer:`<button onclick="closeAppModal()">Zrušit</button><button class="modal-confirm" onclick="confirmDeviceSelector()">Připojit zařízení</button>`});
+    requestAnimationFrame(()=>$('deviceIdChoice')?.select());
+  }
+
+  function confirmDeviceSelector(){
+    const input=$('deviceIdChoice');
+    const nextId=(input?.value||'').trim().toLowerCase();
+    if(!DEVICE_ID_PATTERN.test(nextId)){
+      const error=$('deviceSelectorError');
+      if(error) error.textContent='Použijte ID ve tvaru sb-a1b2c3d4e5f6 bez mezer a lomítek.';
+      input?.focus();
+      return;
+    }
+    try{ localStorage.setItem('scorebridge.deviceId',nextId); }catch(_error){}
+    const targetUrl=new URL(window.location.href);
+    targetUrl.searchParams.set('device',nextId);
+    window.location.assign(targetUrl.toString());
+  }
+
   function refreshLiveScoreModal(){
     if(activeModalView!=='score'||!$('modalLiveScore')) return;
     const modalScore=$('modalLiveScore');
@@ -621,7 +850,7 @@
         <div class="modal-note">Grafy v hlavním dashboardu uchovávají posledních 30 vzorků signálu a baterie.</div>`};
     } else if(view==='log'){
       const logText=($('log').innerText||$('log').textContent||'Žádné zprávy.').trim()||'Žádné zprávy.';
-      config={eyebrow:'Historie příkazů',title:'Log zpráv',body:`<pre class="modal-log">${escapeModalHtml(logText)}</pre>`};
+      config={eyebrow:'Trvalý audit zápasu',title:'Log zápasu',body:`<pre class="modal-log">${escapeModalHtml(logText)}</pre>`,footer:`<button onclick="closeAppModal()">Zavřít</button><button class="modal-confirm" onclick="downloadDeviceAuditLog()">Stáhnout CSV ze zařízení</button>`};
     } else if(view==='map'){
       config={eyebrow:'Polohové služby',title:'Poloha zařízení',body:`
         <div class="modal-map-readout">
@@ -712,6 +941,7 @@
     deviceId:DEVICE_ID,
     topics:Object.freeze({
       command:T_CMD,status:T_STATUS,event:T_EVENT,
+      logStatus:T_LOG_STATUS,logData:T_LOG_DATA,
       learnCommand:T_LEARN_CMD,learnStatus:T_LEARN_STATUS,learnSample:T_LEARN_SAMPLE,
       profileCommand:T_PROFILE_CMD,profileStatus:T_PROFILE_STATUS,
       profileChunk:T_PROFILE_CHUNK,profileData:T_PROFILE_DATA
