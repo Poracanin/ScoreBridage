@@ -27,7 +27,18 @@
 
   document.getElementById('devid').textContent = DEVICE_ID;
   const $ = id => document.getElementById(id);
-  const now = () => new Date().toLocaleTimeString('cs-CZ');
+  const PRAGUE_TIME_ZONE='Europe/Prague';
+  const validUnixEpoch=value=>Number.isFinite(Number(value))&&Number(value)>=1704067200&&Number(value)<4102444800;
+  const pragueClockFormatter=new Intl.DateTimeFormat('cs-CZ',{
+    timeZone:PRAGUE_TIME_ZONE,hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'
+  });
+  const pragueDateTimeFormatter=new Intl.DateTimeFormat('cs-CZ',{
+    timeZone:PRAGUE_TIME_ZONE,year:'numeric',month:'2-digit',day:'2-digit',
+    hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'
+  });
+  const pragueClockFromEpoch=value=>validUnixEpoch(value)?pragueClockFormatter.format(new Date(Number(value)*1000)):'';
+  const pragueDateTimeFromEpoch=value=>validUnixEpoch(value)?pragueDateTimeFormatter.format(new Date(Number(value)*1000)):'';
+  const now = () => pragueClockFormatter.format(new Date());
 
   // ---- RESPONZIVNÍ HLAVNÍ NABÍDKA ----
   const mobileSidebarQuery=window.matchMedia('(max-width: 700px)');
@@ -305,10 +316,22 @@
   const commandLabel=value=>COMMAND_LABELS[value]||String(value||'–').replaceAll('_',' ');
   const commandMatchTime=seconds=>formatMatchTime(Math.max(0,Number(seconds)||0)*1000);
   let timelineEvents=[];
-  const timelineClock=value=>{
+  let latestDeviceClockAnchor=null;
+  const timelineClock=(value,epoch)=>{
+    const pragueTime=pragueClockFromEpoch(epoch);
+    if(pragueTime) return pragueTime;
     const match=String(value||'').match(/(?:^|\s)(\d{2}:\d{2}:\d{2})(?:\s|$)/);
     return match?match[1]:'bez času';
   };
+  function updateDeviceClockAnchor(data){
+    const uptimeSeconds=Number(data?.uptime_s);
+    if(!Number.isFinite(uptimeSeconds)||uptimeSeconds<0) return;
+    const reportedEpoch=Number(data?.utc_epoch);
+    const exact=validUnixEpoch(reportedEpoch);
+    latestDeviceClockAnchor={
+      uptimeSeconds,epoch:exact?reportedEpoch:Date.now()/1000,exact
+    };
+  }
   const timelineColor=event=>{
     if(event==='UNKNOWN') return '#d64555';
     if(event==='HOME_PLUS'||event==='AWAY_PLUS') return '#65a30d';
@@ -324,13 +347,56 @@
     const lines=String(csvText||'').replace(/^\uFEFF/,'').split(/\r?\n/).filter(Boolean);
     if(lines.length<2) return [];
     const headers=lines[0].split(',').map(value=>value.trim());
-    return lines.slice(1).map(line=>{
+    const rows=lines.slice(1).map(line=>{
       const values=line.split(','),row={};
       headers.forEach((header,index)=>row[header]=(values[index]??'').trim());
       row.sequence=Number(row.sequence);
       row.epoch=Number(row.utc_epoch);
       row.matchSeconds=Number(row.match_s);
-      row.time=timelineClock(row.local_time);
+      row.uptimeSeconds=Number(row.uptime_s);
+      return row;
+    });
+
+    // Rozdelime trvaly log na jednotlive behy ESP32 podle poklesu uptime.
+    // Platny UTC zaznam (typicky TIME_SYNCED) slouzi jako kotva i pro
+    // stisky ulozene nekolik sekund pred dokoncenim synchronizace.
+    const segments=[];
+    let segment=[],previousUptime=null;
+    rows.forEach(row=>{
+      if(segment.length&&Number.isFinite(previousUptime)&&Number.isFinite(row.uptimeSeconds)&&row.uptimeSeconds+1<previousUptime){
+        segments.push(segment); segment=[];
+      }
+      segment.push(row);
+      if(Number.isFinite(row.uptimeSeconds)) previousUptime=row.uptimeSeconds;
+    });
+    if(segment.length) segments.push(segment);
+
+    segments.forEach((items,index)=>{
+      const anchors=items.filter(row=>validUnixEpoch(row.epoch)&&row.event!=='SCOREBRIDGE_BOOT');
+      if(index===segments.length-1&&latestDeviceClockAnchor){
+        anchors.push({
+          epoch:latestDeviceClockAnchor.epoch,
+          uptimeSeconds:latestDeviceClockAnchor.uptimeSeconds,
+          browserAnchor:!latestDeviceClockAnchor.exact
+        });
+      }
+      items.forEach(row=>{
+        if(validUnixEpoch(row.epoch)||!Number.isFinite(row.uptimeSeconds)||!anchors.length) return;
+        const anchor=anchors.reduce((best,item)=>
+          Math.abs(item.uptimeSeconds-row.uptimeSeconds)<Math.abs(best.uptimeSeconds-row.uptimeSeconds)?item:best
+        );
+        const inferred=Math.round(Number(anchor.epoch)+row.uptimeSeconds-Number(anchor.uptimeSeconds));
+        if(validUnixEpoch(inferred)){
+          row.epoch=inferred;
+          row.timeInferred=true;
+          row.browserTimeAnchor=!!anchor.browserAnchor;
+        }
+      });
+    });
+
+    return rows.map(row=>{
+      row.time=timelineClock(row.local_time,row.epoch);
+      row.pragueDateTime=pragueDateTimeFromEpoch(row.epoch)||String(row.local_time||'bez času');
       row.label=timelineEventLabel(row);
       row.color=timelineColor(row.event||'');
       return row;
@@ -351,7 +417,7 @@
     rows.forEach(row=>{
       const event=document.createElement('div'); event.className='timeline-event'; event.tabIndex=0;
       event.style.setProperty('--event-color',row.color);
-      event.title=`${row.local_time}\n${row.label}\nTlačítko: ${row.event}${row.action&&row.action!=='-'?`\nAkce: ${commandLabel(row.action)}`:''}\nČas zápasu: ${commandMatchTime(row.matchSeconds)}`;
+      event.title=`${row.pragueDateTime}\n${row.label}\nTlačítko: ${row.event}${row.action&&row.action!=='-'?`\nAkce: ${commandLabel(row.action)}`:''}\nČas zápasu: ${commandMatchTime(row.matchSeconds)}`;
       const label=document.createElement('div'); label.className='timeline-event-label';
       const timeTop=document.createElement('strong'); timeTop.textContent=row.time;
       const name=document.createElement('span'); name.textContent=row.label;
@@ -360,7 +426,7 @@
       const dot=document.createElement('i'); dot.className='timeline-event-dot';
       const axis=document.createElement('time'); axis.className='timeline-event-axis'; axis.textContent=row.time;
       const detail=document.createElement('div'); detail.className='timeline-event-detail';
-      detail.textContent=`zápas ${commandMatchTime(row.matchSeconds)} · ${row.source||'zdroj neznámý'}`;
+      detail.textContent=`zápas ${commandMatchTime(row.matchSeconds)} · ${row.source||'zdroj neznámý'}${row.timeInferred?' · čas dopočítán':''}`;
       event.append(label,stem,dot,axis,detail); plot.append(event);
     });
     summary.textContent=`${rows.length} stisků · ${rows[0].time} až ${rows.at(-1).time}`;
@@ -370,11 +436,15 @@
     if(!data?.event||data.source==='SYSTEM') return;
     const sequence=Number(data.event_seq);
     if(Number.isFinite(sequence)&&timelineEvents.some(row=>row.sequence===sequence)) return;
+    const reportedEpoch=Number(data.utc_epoch);
+    const eventEpoch=validUnixEpoch(reportedEpoch)?reportedEpoch:Math.floor(Date.now()/1000);
     const row={
       sequence,event:String(data.event),action:String(data.action||'-'),source:String(data.source||'DERBY'),
-      local_time:String(data.wall_time||''),matchSeconds:Number(data.match_elapsed_s)
+      local_time:String(data.wall_time||''),matchSeconds:Number(data.match_elapsed_s),epoch:eventEpoch,
+      timeInferred:!validUnixEpoch(reportedEpoch),browserTimeAnchor:!validUnixEpoch(reportedEpoch)
     };
-    row.time=timelineClock(row.local_time);
+    row.time=timelineClock(row.local_time,row.epoch);
+    row.pragueDateTime=pragueDateTimeFromEpoch(row.epoch)||row.local_time||'bez času';
     row.label=timelineEventLabel(row);
     row.color=timelineColor(row.event);
     renderAuditTimeline([...timelineEvents,row]);
@@ -615,6 +685,7 @@
     if(!d||typeof d!=='object'||Array.isArray(d)) return log('Neplatný tvar MQTT zprávy');
     setSerialMonitorLine(rawMessage);
     const actionTime=now();
+    updateDeviceClockAnchor(d);
     $('updated').textContent = actionTime;
     $('lastAction').textContent = actionTime;
 
@@ -966,6 +1037,9 @@
       return ()=>mqttConnectionListeners.delete(listener);
     },
     log,
+    timeZone:PRAGUE_TIME_ZONE,
+    formatPragueClock:pragueClockFromEpoch,
+    parseAuditCsv,
     showModal:showAppModal,
     closeModal:closeAppModal,
     setModalView:view=>{ activeModalView=view; },
