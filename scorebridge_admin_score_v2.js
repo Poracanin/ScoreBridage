@@ -1,14 +1,19 @@
   // Jednotka se voli parametrem ?device=sb-...; posledni volba se pamatuje.
   const DEVICE_ID_PATTERN=/^[a-z0-9][a-z0-9_-]{2,39}$/i;
+  const PAIRED_DEVICE_IDS=Object.freeze(['sb-c43dda2f5628','sb-ec7cafabc31c']);
+  const LEGACY_TEST_DEVICE_ID='sb-test-7431';
   const requestedDeviceId=new URLSearchParams(window.location.search).get('device')||'';
   let storedDeviceId='';
   try{ storedDeviceId=localStorage.getItem('scorebridge.deviceId')||''; }catch(_error){}
   const DEVICE_ID=(DEVICE_ID_PATTERN.test(requestedDeviceId)?requestedDeviceId:
-    DEVICE_ID_PATTERN.test(storedDeviceId)?storedDeviceId:'sb-test-7431').toLowerCase();
+    DEVICE_ID_PATTERN.test(storedDeviceId)&&storedDeviceId.toLowerCase()!==LEGACY_TEST_DEVICE_ID?storedDeviceId:
+    PAIRED_DEVICE_IDS[0]).toLowerCase();
   const BROKER    = "wss://broker.hivemq.com:8884/mqtt";
   const T_CMD    = `scorebridge/${DEVICE_ID}/cmd`;
   const T_STATUS = `scorebridge/${DEVICE_ID}/status`;
   const T_EVENT  = `scorebridge/${DEVICE_ID}/event`;
+  const T_DISCOVERY_STATUS = 'scorebridge/+/status';
+  const T_DISCOVERY_EVENT = 'scorebridge/+/event';
   const T_LOG_STATUS = `scorebridge/${DEVICE_ID}/log/status`;
   const T_LOG_DATA = `scorebridge/${DEVICE_ID}/log/data`;
   const T_LEARN_CMD = `scorebridge/${DEVICE_ID}/learn/cmd`;
@@ -21,6 +26,9 @@
   const MAXPTS = 30;
   const mqttExtensionListeners = new Set();
   const mqttConnectionListeners = new Set();
+  const discoveredDevices = new Map();
+  let currentDeviceSeen = false;
+  let discoveryPromptTimer = null;
   const notifyMqttConnection = connected => mqttConnectionListeners.forEach(listener=>{
     try{ listener(connected); }catch(error){ log('Chyba doplňku: '+error.message); }
   });
@@ -666,12 +674,24 @@
   // ---- MQTT ----
   const client = mqtt.connect(BROKER, { clientId:'panel-'+Math.random().toString(16).slice(2) });
   client.on('connect', ()=>{ setConn(true); log('Připojeno k brokeru');
-    client.subscribe([T_STATUS,T_EVENT,T_LOG_STATUS,`${T_LOG_DATA}/#`,T_LEARN_STATUS,T_LEARN_SAMPLE,T_PROFILE_STATUS,`${T_PROFILE_DATA}/#`],
+    currentDeviceSeen=false;
+    client.subscribe([T_DISCOVERY_STATUS,T_DISCOVERY_EVENT,T_LOG_STATUS,`${T_LOG_DATA}/#`,T_LEARN_STATUS,T_LEARN_SAMPLE,T_PROFILE_STATUS,`${T_PROFILE_DATA}/#`],
       error=>log(error?'Chyba odběru MQTT: '+error.message:'Poslouchám stav, DERBY události a kalibraci'));
     notifyMqttConnection(true);
-    cmd('all'); cmd('log_info'); });
+    cmd('all'); cmd('log_info');
+    PAIRED_DEVICE_IDS.filter(id=>id!==DEVICE_ID).forEach(id=>
+      client.publish(`scorebridge/${id}/cmd`,'all',{qos:0,retain:false})
+    );
+    if(discoveryPromptTimer) clearTimeout(discoveryPromptTimer);
+    discoveryPromptTimer=setTimeout(()=>{
+      if(!currentDeviceSeen&&discoveredDevices.size&&(!activeModalView||activeModalView==='select-device')) openDeviceSelector();
+    },3500);
+  });
   client.on('reconnect', ()=>log('Znovupřipojování…'));
-  client.on('close', ()=>{ setConn(false); notifyMqttConnection(false); });
+  client.on('close', ()=>{
+    if(discoveryPromptTimer) clearTimeout(discoveryPromptTimer);
+    setConn(false); notifyMqttConnection(false);
+  });
   client.on('error', e=>log('Chyba: '+e));
 
   client.on('message', (t,msg)=>{
@@ -679,10 +699,17 @@
       try{ listener(t,msg); }catch(error){ log('Chyba doplňku: '+error.message); }
     });
     if(t===T_LOG_STATUS||t.startsWith(T_LOG_DATA+'/')) return handleAuditLogMessage(t,msg);
-    if(t!==T_STATUS&&t!==T_EVENT) return;
+    const discoveredStatus=t.match(/^scorebridge\/([^/]+)\/status$/);
+    const discoveredEvent=t.match(/^scorebridge\/([^/]+)\/event$/);
+    if(!discoveredStatus&&!discoveredEvent) return;
     const rawMessage=msg.toString();
     let d; try{ d=JSON.parse(rawMessage); }catch(e){ return log('Neplatná zpráva'); }
     if(!d||typeof d!=='object'||Array.isArray(d)) return log('Neplatný tvar MQTT zprávy');
+    if(discoveredStatus||discoveredEvent){
+      const discoveredId=String((discoveredStatus||discoveredEvent)[1]||'').toLowerCase();
+      registerDiscoveredDevice(discoveredId,d);
+      if(discoveredId!==DEVICE_ID) return;
+    }
     setSerialMonitorLine(rawMessage);
     const actionTime=now();
     updateDeviceClockAnchor(d);
@@ -816,17 +843,165 @@
     modalReturnFocus=null;
   }
 
+  function requestPairedDeviceState(id){
+    if(!client.connected) return log(`Jednotka ${id}: MQTT není připojeno`);
+    client.publish(`scorebridge/${id}/cmd`,'all',{qos:0,retain:false});
+    log(`→ načíst stav ${id}`);
+  }
+
+  function renderPairedDevices(){
+    const container=$('pairedDevicesGrid');
+    if(!container) return;
+    container.replaceChildren();
+    PAIRED_DEVICE_IDS.forEach((id,index)=>{
+      const device=discoveredDevices.get(id)||{};
+      const online=Number.isFinite(device.seenAt)&&Date.now()-device.seenAt<45000;
+      const active=id===DEVICE_ID;
+      const article=document.createElement('article');
+      article.className=`paired-device-card${active?' is-active':''}${online?' is-online':' is-offline'}`;
+      article.dataset.deviceId=id;
+
+      const header=document.createElement('div');
+      header.className='paired-device-card-head';
+      const identity=document.createElement('div');
+      const label=document.createElement('small');
+      label.textContent=`Jednotka ${index+1}${active?' · detailně ovládaná':''}`;
+      const title=document.createElement('strong');
+      title.textContent=id;
+      identity.append(label,title);
+      const presence=document.createElement('span');
+      presence.className=`paired-device-presence ${online?'is-online':'is-offline'}`;
+      presence.textContent=online?'online':'čekám na heartbeat';
+      header.append(identity,presence);
+
+      const values=document.createElement('div');
+      values.className='paired-device-values';
+      const score=document.createElement('div');
+      score.innerHTML='<span>Skóre</span>';
+      const scoreValue=document.createElement('strong');
+      scoreValue.textContent=Number.isFinite(device.home)&&Number.isFinite(device.away)?`${device.home}:${device.away}`:'–:–';
+      score.append(scoreValue);
+      const clock=document.createElement('div');
+      clock.innerHTML='<span>Čas zápasu</span>';
+      const clockValue=document.createElement('strong');
+      clockValue.textContent=Number.isFinite(device.matchElapsedSeconds)?commandMatchTime(device.matchElapsedSeconds):'0:00';
+      clock.append(clockValue);
+      const board=document.createElement('div');
+      board.innerHTML='<span>Tabule</span>';
+      const boardValue=document.createElement('strong');
+      boardValue.textContent=device.boardPower===true?'zapnuta':device.boardPower===false?'vypnuta':'–';
+      board.append(boardValue);
+      const timer=document.createElement('div');
+      timer.innerHTML='<span>Časomíra</span>';
+      const timerValue=document.createElement('strong');
+      timerValue.textContent=device.clockRunning===true?'běží':device.clockRunning===false?'stojí':'–';
+      timer.append(timerValue);
+      values.append(score,clock,board,timer);
+
+      const footer=document.createElement('div');
+      footer.className='paired-device-card-foot';
+      const last=document.createElement('div');
+      last.innerHTML='<span>Poslední příkaz</span>';
+      const lastValue=document.createElement('strong');
+      lastValue.textContent=commandLabel(device.lastEvent||'–');
+      last.append(lastValue);
+      const actions=document.createElement('div');
+      actions.className='paired-device-actions';
+      const refresh=document.createElement('button');
+      refresh.type='button'; refresh.textContent='Načíst stav';
+      refresh.addEventListener('click',()=>requestPairedDeviceState(id));
+      const select=document.createElement('button');
+      select.type='button'; select.className='paired-device-select';
+      select.textContent=active?'Právě ovládáte':'Ovládat jednotku';
+      select.disabled=active;
+      select.addEventListener('click',()=>switchToDevice(id));
+      actions.append(refresh,select);
+      footer.append(last,actions);
+      article.append(header,values,footer);
+      container.append(article);
+    });
+  }
+
   function openDeviceSelector(){
     activeModalView='select-device';
     showAppModal({eyebrow:'Dvě testovací jednotky',title:'Vybrat ScoreBridge',compact:true,body:`
       <div class="device-selector-form">
+        <div class="discovered-device-list" id="discoveredDeviceList" aria-live="polite"></div>
+        <div class="device-selector-separator"><span>nebo zadat ručně</span></div>
         <label for="deviceIdChoice">ID zařízení ze Serial Monitoru</label>
         <input id="deviceIdChoice" type="text" value="${escapeModalHtml(DEVICE_ID)}" placeholder="sb-a1b2c3d4e5f6" autocomplete="off" spellcheck="false" onkeydown="if(event.key==='Enter') confirmDeviceSelector()">
         <small>Po zapnutí firmware vypíše řádek „ID ZARIZENI“. Každé ESP32 má jiné a stálé ID.</small>
         <div class="device-selector-error" id="deviceSelectorError" role="alert"></div>
       </div>`,footer:`<button onclick="closeAppModal()">Zrušit</button><button class="modal-confirm" onclick="confirmDeviceSelector()">Připojit zařízení</button>`});
-    requestAnimationFrame(()=>$('deviceIdChoice')?.select());
+    renderDiscoveredDevices();
+    requestAnimationFrame(()=>{
+      if(!discoveredDevices.size) $('deviceIdChoice')?.select();
+    });
   }
+
+  function switchToDevice(nextId){
+    if(!DEVICE_ID_PATTERN.test(nextId)) return;
+    try{ localStorage.setItem('scorebridge.deviceId',nextId); }catch(_error){}
+    const targetUrl=new URL(window.location.href);
+    targetUrl.pathname=targetUrl.pathname.replace(/time-test\.html$/,'index.html');
+    targetUrl.searchParams.set('device',nextId);
+    window.location.assign(targetUrl.toString());
+  }
+
+  function renderDiscoveredDevices(){
+    const container=$('discoveredDeviceList');
+    if(!container) return;
+    container.replaceChildren();
+    const devices=[...discoveredDevices.values()].sort((a,b)=>b.seenAt-a.seenAt);
+    if(!devices.length){
+      const waiting=document.createElement('div');
+      waiting.className='discovered-device-empty';
+      waiting.textContent='Hledám zapnuté jednotky na MQTT…';
+      container.append(waiting);
+      return;
+    }
+    devices.forEach(device=>{
+      const button=document.createElement('button');
+      button.type='button';
+      button.className='discovered-device'+(device.id===DEVICE_ID?' is-current':'');
+      button.disabled=device.id===DEVICE_ID;
+      const heading=document.createElement('strong');
+      heading.textContent=device.id+(device.id===DEVICE_ID?' · právě vybráno':'');
+      const detail=document.createElement('span');
+      const score=Number.isFinite(device.home)&&Number.isFinite(device.away)?`skóre ${device.home}:${device.away}`:'stav přijat';
+      detail.textContent=`online · ${score}`;
+      button.append(heading,detail);
+      button.addEventListener('click',()=>switchToDevice(device.id));
+      container.append(button);
+    });
+  }
+
+  function registerDiscoveredDevice(id,data){
+    if(!DEVICE_ID_PATTERN.test(id)||String(data?.id||'').toLowerCase()!==id) return;
+    if(id===DEVICE_ID) currentDeviceSeen=true;
+    const previous=discoveredDevices.get(id)||{};
+    discoveredDevices.set(id,{
+      ...previous,
+      id,
+      seenAt:Date.now(),
+      home:data.home!==undefined?Number(data.home):previous.home,
+      away:data.away!==undefined?Number(data.away):previous.away,
+      matchElapsedSeconds:data.match_elapsed_s!==undefined?Number(data.match_elapsed_s):previous.matchElapsedSeconds,
+      boardPower:data.derby_power!==undefined?!!data.derby_power:previous.boardPower,
+      clockRunning:data.clock_running!==undefined?!!data.clock_running:previous.clockRunning,
+      lastEvent:String(data.event||data.last_event||previous.lastEvent||'–'),
+      utcEpoch:validUnixEpoch(data.utc_epoch)?Number(data.utc_epoch):previous.utcEpoch
+    });
+    if(discoveredDevices.size>16){
+      const oldest=[...discoveredDevices.values()].sort((a,b)=>a.seenAt-b.seenAt)[0];
+      if(oldest) discoveredDevices.delete(oldest.id);
+    }
+    renderDiscoveredDevices();
+    renderPairedDevices();
+  }
+
+  renderPairedDevices();
+  setInterval(renderPairedDevices,5000);
 
   function confirmDeviceSelector(){
     const input=$('deviceIdChoice');
@@ -837,10 +1012,7 @@
       input?.focus();
       return;
     }
-    try{ localStorage.setItem('scorebridge.deviceId',nextId); }catch(_error){}
-    const targetUrl=new URL(window.location.href);
-    targetUrl.searchParams.set('device',nextId);
-    window.location.assign(targetUrl.toString());
+    switchToDevice(nextId);
   }
 
   function refreshLiveScoreModal(){

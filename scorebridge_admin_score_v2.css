@@ -454,6 +454,33 @@
   .engineering-app button.dark-action{border-color:#202226;background:#202226;color:#fff;}
   .engineering-app button.dark-action:hover{background:#36393e;}
 
+  .paired-devices{margin-bottom:14px;padding:15px;border:1px solid #dcded7;border-radius:14px;background:#f5f6f2;}
+  .paired-devices-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:11px;}
+  .paired-devices-head small{display:block;margin-bottom:4px;color:#8b8e86;font-size:8px;font-weight:800;letter-spacing:.65px;text-transform:uppercase;}
+  .paired-devices-head h2{font-size:15px;letter-spacing:-.35px;}
+  .paired-devices-head>span{color:#858880;font-size:9px;}
+  .paired-devices-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
+  .paired-device-card{min-width:0;padding:13px;border:1px solid #d8dad3;border-radius:12px;background:#fff;box-shadow:0 3px 10px rgba(25,28,22,.035);}
+  .paired-device-card.is-active{border-color:#91bd33;box-shadow:0 0 0 2px rgba(161,211,60,.18);}
+  .paired-device-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;}
+  .paired-device-card-head small{display:block;margin-bottom:4px;color:#8a8d85;font-size:8px;font-weight:750;text-transform:uppercase;letter-spacing:.55px;}
+  .paired-device-card-head strong{display:block;font:800 12px ui-monospace,'SF Mono',Menlo,monospace;color:#24272a;}
+  .paired-device-presence{display:inline-flex;align-items:center;gap:5px;padding:5px 8px;border-radius:999px;font-size:8px;font-weight:800;text-transform:uppercase;}
+  .paired-device-presence::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor;}
+  .paired-device-presence.is-online{color:#4e7500;background:#efffcf;}
+  .paired-device-presence.is-offline{color:#a13a47;background:#ffeaed;}
+  .paired-device-values{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:12px 0;}
+  .paired-device-values>div{min-width:0;padding:8px;border:1px solid #ecece7;border-radius:8px;background:#fafaf8;}
+  .paired-device-values span,.paired-device-card-foot span{display:block;margin-bottom:3px;color:#92948f;font-size:7px;font-weight:750;letter-spacing:.4px;text-transform:uppercase;}
+  .paired-device-values strong{display:block;overflow:hidden;color:#292b2f;font:800 14px ui-monospace,'SF Mono',Menlo,monospace;text-overflow:ellipsis;white-space:nowrap;}
+  .paired-device-card-foot{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;}
+  .paired-device-card-foot>div:first-child{min-width:0;}
+  .paired-device-card-foot>div:first-child strong{display:block;overflow:hidden;max-width:210px;color:#34373b;font-size:9px;text-overflow:ellipsis;white-space:nowrap;}
+  .paired-device-actions{display:flex;gap:6px;}
+  .engineering-app .paired-device-actions button{height:30px;padding:0 9px;font-size:8px;}
+  .engineering-app .paired-device-actions .paired-device-select{border-color:#202226;background:#202226;color:#fff;}
+  .engineering-app .paired-device-actions .paired-device-select:disabled{border-color:#b6d873;background:#eaffc1;color:#476900;opacity:1;cursor:default;}
+
   .engineering-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:12px;}
   .metric-card{position:relative;min-width:0;height:106px;padding:15px 16px;border:1px solid var(--eng-line);border-radius:12px;background:#fff;overflow:hidden;box-shadow:0 2px 7px rgba(0,0,0,.025);}
   .metric-card::after{content:"";position:absolute;inset:auto 0 0;height:27px;background:#f4f4f1;border-top:1px solid #ecece7;}
@@ -623,6 +650,8 @@
     .dashboard-topbar{padding:0 16px;}
     .engineering-search{margin-left:auto;}
     .dashboard-content{padding:20px 16px 30px;}
+    .paired-device-values{grid-template-columns:repeat(2,minmax(0,1fr));}
+    .paired-device-card-foot{align-items:flex-start;flex-direction:column;}
     .engineering-metrics{grid-template-columns:repeat(2,minmax(0,1fr));}
     .engineering-status{grid-template-columns:repeat(2,minmax(0,1fr));}
     .status-cell:nth-child(2){border-right:1px solid var(--eng-line);}
@@ -656,6 +685,9 @@
     .content-heading h1{font-size:23px;}
     .heading-actions{width:100%;}
     .heading-actions button{flex:1;}
+    .paired-devices-head{align-items:flex-start;flex-direction:column;gap:4px;}
+    .paired-devices-grid{grid-template-columns:1fr;}
+    .paired-device-card-foot{align-items:flex-end;flex-direction:row;}
     .engineering-metrics{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
     .metric-card{height:104px;padding:13px 12px;}
     .metric-card-value{font-size:22px;letter-spacing:-1px;}
@@ -717,6 +749,15 @@
   .device-selector-form input:focus{border-color:#7da917;box-shadow:0 0 0 3px rgba(183,255,42,.25);}
   .device-selector-form small{color:#7d8085;font-size:10px;line-height:1.5;}
   .device-selector-error{min-height:16px;color:#b23342;font-size:10px;font-weight:700;}
+  .discovered-device-list{display:grid;gap:8px;max-height:230px;overflow:auto;}
+  .discovered-device-empty{padding:14px;border:1px dashed #c8cbc4;border-radius:10px;background:#f7f8f4;color:#777a80;font-size:11px;text-align:center;}
+  .discovered-device{display:flex;flex-direction:column;gap:4px;width:100%;padding:12px 14px;border:1px solid #c9ccc4;border-radius:11px;background:#fff;color:#202226;text-align:left;cursor:pointer;}
+  .discovered-device:hover{border-color:#8bac37;background:#f8fbeF;}
+  .discovered-device strong{font:800 13px ui-monospace,'SF Mono',Menlo,monospace;}
+  .discovered-device span{color:#697164;font-size:10px;}
+  .discovered-device.is-current{border-color:#9fbd50;background:#f2f7e7;cursor:default;}
+  .device-selector-separator{display:flex;align-items:center;gap:10px;color:#989b94;font-size:9px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;}
+  .device-selector-separator::before,.device-selector-separator::after{content:'';height:1px;flex:1;background:#dedfd9;}
   .modal-score{position:relative;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:24px;min-height:380px;padding:34px 34px 144px;border:2px solid #ddd;border-radius:15px;text-align:center;overflow:hidden;}
   .modal-score.has-rf-frame{grid-template-columns:minmax(120px,1fr) auto minmax(120px,1fr) minmax(230px,.72fr);}
   .modal-score.state-off{border-color:#df6a78;background:#ffe6ea;box-shadow:inset 0 -10px 0 #d64555;}
