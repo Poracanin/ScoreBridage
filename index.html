@@ -23,6 +23,7 @@
       <div class="nav-group">
         <div class="nav-group-title">Hlavní nabídka</div>
         <a class="side-link active" href="#overview" data-modal-view="dashboard"><span class="nav-icon">▦</span>Přehled</a>
+        <a class="side-link" href="./kluby.html"><span class="nav-icon">⬡</span>Kluby <span class="side-count">7</span></a>
         <a class="side-link" href="#scoreboard" data-modal-view="score"><span class="nav-icon">◫</span>Živé skóre</a>
         <a class="side-link" href="#device-controls" data-modal-view="controls"><span class="nav-icon">⌁</span>Ovládání zařízení</a>
         <a class="side-link" href="#calibration" data-calibration-open><span class="nav-icon">⌾</span>Kalibrace ovladačky</a>
@@ -194,6 +195,228 @@
         </div>
       </section>
 
+      <template id="legacyClubSection"><section class="clubs-section" id="clubs" aria-labelledby="clubsTitle">
+        <header class="clubs-heading">
+          <div>
+            <span class="clubs-eyebrow">OP Kladno / evidence stadionů</span>
+            <h2 id="clubsTitle">Kluby a jejich výsledkové tabule</h2>
+            <p>Fotodokumentace tabulí a ovladačů včetně dostupných technických údajů.</p>
+          </div>
+          <div class="clubs-summary" aria-label="Souhrn evidence klubů">
+            <div><strong>7</strong><span>klubů</span></div>
+            <div><strong>29</strong><span>fotografií</span></div>
+            <div><strong>3×</strong><span>DERBY RC</span></div>
+          </div>
+        </header>
+
+        <div class="clubs-toolbar">
+          <label class="clubs-search" for="clubSearch">
+            <span aria-hidden="true">⌕</span>
+            <input id="clubSearch" type="search" placeholder="Hledat klub, výrobce nebo typ…" autocomplete="off">
+          </label>
+          <div class="clubs-legend" aria-label="Legenda frekvence">
+            <span><i class="is-confirmed"></i>ověřeno</span>
+            <span><i class="is-pending"></i>k ověření</span>
+            <span><i class="is-wired"></i>kabel</span>
+          </div>
+        </div>
+
+        <div class="clubs-grid" id="clubsGrid">
+          <article class="club-card" data-club-card data-search="afk tuchlovice vseprofifotbal bezdratovy radiovy 6 prvku">
+            <header class="club-card-head">
+              <div><span>OP Kladno</span><h3>AFK Tuchlovice</h3></div>
+              <code>AFKTuchlovice</code>
+            </header>
+            <div class="club-media">
+              <button class="club-photo" type="button" data-club-image="kluby/AFKTuchlovice/AFKTuchlovice-tabule.webp" data-club-caption="AFK Tuchlovice — výsledková tabule">
+                <img src="kluby/AFKTuchlovice/AFKTuchlovice-tabule.webp" alt="Výsledková tabule AFK Tuchlovice" loading="lazy" decoding="async">
+                <span>Tabule</span>
+              </button>
+              <button class="club-photo" type="button" data-club-image="kluby/AFKTuchlovice/AFKTuchlovice-ovladac.webp" data-club-caption="AFK Tuchlovice — ovladač">
+                <img src="kluby/AFKTuchlovice/AFKTuchlovice-ovladac.webp" alt="Ovladač výsledkové tabule AFK Tuchlovice" loading="lazy" decoding="async">
+                <span>Ovladač</span>
+              </button>
+            </div>
+            <dl class="club-specs">
+              <div><dt>Frekvence</dt><dd><span class="club-frequency is-pending">K ověření</span></dd></div>
+              <div><dt>Výrobce / dodavatel</dt><dd>VšeProfiFotbal</dd></div>
+              <div><dt>Typ ovladače</dt><dd>Rádiový · 6 prvků</dd></div>
+            </dl>
+            <p class="club-note">Na tabuli je uveden dodavatel; výrobní štítek ani frekvence na fotografii nejsou.</p>
+          </article>
+
+          <article class="club-card" data-club-card data-search="fk slovan kladno sportfotbal ldp51 radiovy 4 tlacitka">
+            <header class="club-card-head">
+              <div><span>OP Kladno</span><h3>FK Slovan Kladno</h3></div>
+              <code>FKSlovanKladno</code>
+            </header>
+            <div class="club-media">
+              <button class="club-photo" type="button" data-club-image="kluby/FKSlovanKladno/FKSlovanKladno-tabule.webp" data-club-caption="FK Slovan Kladno — výsledková tabule">
+                <img src="kluby/FKSlovanKladno/FKSlovanKladno-tabule.webp" alt="Výsledková tabule FK Slovan Kladno" loading="lazy" decoding="async">
+                <span>Tabule</span>
+              </button>
+              <button class="club-photo" type="button" data-club-image="kluby/FKSlovanKladno/FKSlovanKladno-ovladac.webp" data-club-caption="FK Slovan Kladno — ovladač">
+                <img src="kluby/FKSlovanKladno/FKSlovanKladno-ovladac.webp" alt="Ovladač výsledkové tabule FK Slovan Kladno" loading="lazy" decoding="async">
+                <span>Ovladač</span>
+              </button>
+            </div>
+            <dl class="club-specs">
+              <div><dt>Frekvence</dt><dd><span class="club-frequency is-pending">K ověření</span></dd></div>
+              <div><dt>Výrobce / dodavatel</dt><dd>SportFotbal</dd></div>
+              <div><dt>Typ ovladače</dt><dd>LDP · 4 tlačítka</dd></div>
+            </dl>
+            <p class="club-note">Řada LDP je určena podle ovladače a označení dodavatele; přesný model ani RF pásmo nejsou uvedeny.</p>
+          </article>
+
+          <article class="club-card" data-club-card data-search="sk lhota legga kabelovy pult bez rf">
+            <header class="club-card-head">
+              <div><span>OP Kladno</span><h3>SK Lhota</h3></div>
+              <code>SKLhota</code>
+            </header>
+            <div class="club-media">
+              <button class="club-photo" type="button" data-club-image="kluby/SKLhota/SKLhota-tabule.webp" data-club-caption="SK Lhota — výsledková tabule">
+                <img src="kluby/SKLhota/SKLhota-tabule.webp" alt="Výsledková tabule SK Lhota" loading="lazy" decoding="async">
+                <span>Tabule</span>
+              </button>
+              <button class="club-photo" type="button" data-club-image="kluby/SKLhota/SKLhota-ovladac.webp" data-club-caption="SK Lhota — kabelový ovladač">
+                <img src="kluby/SKLhota/SKLhota-ovladac.webp" alt="Kabelový ovladač výsledkové tabule SK Lhota" loading="lazy" decoding="async">
+                <span>Ovladač</span>
+              </button>
+            </div>
+            <dl class="club-specs">
+              <div><dt>Frekvence</dt><dd><span class="club-frequency is-wired">Bez RF</span></dd></div>
+              <div><dt>Výrobce</dt><dd>LEGGA</dd></div>
+              <div><dt>Typ ovladače</dt><dd>Kabelový pult</dd></div>
+            </dl>
+            <details class="club-gallery">
+              <summary>Další fotografie <span>1</span></summary>
+              <div>
+                <button type="button" data-club-image="kluby/SKLhota/SKLhota-tabule-detail.webp" data-club-caption="SK Lhota — detail výsledkové tabule"><img src="kluby/SKLhota/SKLhota-tabule-detail.webp" alt="Detail výsledkové tabule SK Lhota" loading="lazy"></button>
+              </div>
+            </details>
+          </article>
+
+          <article class="club-card" data-club-card data-search="sk slavoj pozden eal tia derby rc 433 87 mhz radiovy">
+            <header class="club-card-head">
+              <div><span>OP Kladno</span><h3>SK Slavoj Pozdeň</h3></div>
+              <code>SKSlavojPozden</code>
+            </header>
+            <div class="club-media">
+              <button class="club-photo" type="button" data-club-image="kluby/SKSlavojPozden/SKSlavojPozden-tabule.webp" data-club-caption="SK Slavoj Pozdeň — výsledková tabule">
+                <img src="kluby/SKSlavojPozden/SKSlavojPozden-tabule.webp" alt="Výsledková tabule SK Slavoj Pozdeň" loading="lazy" decoding="async">
+                <span>Tabule</span>
+              </button>
+              <button class="club-photo" type="button" data-club-image="kluby/SKSlavojPozden/SKSlavojPozden-ovladac.webp" data-club-caption="SK Slavoj Pozdeň — ovladač DERBY RC">
+                <img src="kluby/SKSlavojPozden/SKSlavojPozden-ovladac.webp" alt="Ovladač DERBY RC klubu SK Slavoj Pozdeň" loading="lazy" decoding="async">
+                <span>Ovladač</span>
+              </button>
+            </div>
+            <dl class="club-specs">
+              <div><dt>Frekvence</dt><dd><span class="club-frequency is-confirmed">433,87 MHz</span></dd></div>
+              <div><dt>Výrobce</dt><dd>EAL/TIA</dd></div>
+              <div><dt>Typ ovladače</dt><dd>DERBY RC</dd></div>
+            </dl>
+            <p class="club-note is-confirmed">Profil této rodiny DERBY RC byl změřen při RF testování ScoreBridge.</p>
+            <details class="club-gallery">
+              <summary>Další fotografie <span>3</span></summary>
+              <div>
+                <button type="button" data-club-image="kluby/SKSlavojPozden/SKSlavojPozden-tabule-zadni.webp" data-club-caption="SK Slavoj Pozdeň — zadní strana tabule"><img src="kluby/SKSlavojPozden/SKSlavojPozden-tabule-zadni.webp" alt="Zadní strana tabule SK Slavoj Pozdeň" loading="lazy"></button>
+                <button type="button" data-club-image="kluby/SKSlavojPozden/SKSlavojPozden-ovladac-zadni.webp" data-club-caption="SK Slavoj Pozdeň — zadní strana ovladače"><img src="kluby/SKSlavojPozden/SKSlavojPozden-ovladac-zadni.webp" alt="Zadní strana ovladače SK Slavoj Pozdeň" loading="lazy"></button>
+                <button type="button" data-club-image="kluby/SKSlavojPozden/SKSlavojPozden-ovladac-detail.webp" data-club-caption="SK Slavoj Pozdeň — detail ovladače"><img src="kluby/SKSlavojPozden/SKSlavojPozden-ovladac-detail.webp" alt="Detail ovladače SK Slavoj Pozdeň" loading="lazy"></button>
+              </div>
+            </details>
+          </article>
+
+          <article class="club-card" data-club-card data-search="sk velke pritocno eal tia derby rc 433 87 mhz radiovy">
+            <header class="club-card-head">
+              <div><span>OP Kladno</span><h3>SK Velké Přítočno</h3></div>
+              <code>SKVelkePritocno</code>
+            </header>
+            <div class="club-media">
+              <button class="club-photo" type="button" data-club-image="kluby/SKVelkePritocno/SKVelkePritocno-tabule.webp" data-club-caption="SK Velké Přítočno — výsledková tabule">
+                <img src="kluby/SKVelkePritocno/SKVelkePritocno-tabule.webp" alt="Výsledková tabule SK Velké Přítočno" loading="lazy" decoding="async">
+                <span>Tabule</span>
+              </button>
+              <button class="club-photo" type="button" data-club-image="kluby/SKVelkePritocno/SKVelkePritocno-ovladac.webp" data-club-caption="SK Velké Přítočno — ovladač DERBY RC">
+                <img src="kluby/SKVelkePritocno/SKVelkePritocno-ovladac.webp" alt="Ovladač DERBY RC klubu SK Velké Přítočno" loading="lazy" decoding="async">
+                <span>Ovladač</span>
+              </button>
+            </div>
+            <dl class="club-specs">
+              <div><dt>Frekvence</dt><dd><span class="club-frequency is-confirmed">433,87 MHz</span></dd></div>
+              <div><dt>Výrobce</dt><dd>EAL/TIA</dd></div>
+              <div><dt>Typ ovladače</dt><dd>DERBY RC</dd></div>
+            </dl>
+            <p class="club-note is-confirmed">Profil této rodiny DERBY RC byl změřen při RF testování ScoreBridge.</p>
+          </article>
+
+          <article class="club-card" data-club-card data-search="tj sokol olovnice eal tia derby rc 433 87 mhz radiovy">
+            <header class="club-card-head">
+              <div><span>OP Kladno</span><h3>TJ Sokol Olovnice</h3></div>
+              <code>TJSokolOlovnice</code>
+            </header>
+            <div class="club-media">
+              <button class="club-photo" type="button" data-club-image="kluby/TJSokolOlovnice/TJSokolOlovnice-tabule.webp" data-club-caption="TJ Sokol Olovnice — výsledková tabule">
+                <img src="kluby/TJSokolOlovnice/TJSokolOlovnice-tabule.webp" alt="Výsledková tabule TJ Sokol Olovnice" loading="lazy" decoding="async">
+                <span>Tabule</span>
+              </button>
+              <button class="club-photo" type="button" data-club-image="kluby/TJSokolOlovnice/TJSokolOlovnice-ovladac.webp" data-club-caption="TJ Sokol Olovnice — ovladač DERBY RC">
+                <img src="kluby/TJSokolOlovnice/TJSokolOlovnice-ovladac.webp" alt="Ovladač DERBY RC klubu TJ Sokol Olovnice" loading="lazy" decoding="async">
+                <span>Ovladač</span>
+              </button>
+            </div>
+            <dl class="club-specs">
+              <div><dt>Frekvence</dt><dd><span class="club-frequency is-confirmed">433,87 MHz</span></dd></div>
+              <div><dt>Výrobce</dt><dd>EAL/TIA</dd></div>
+              <div><dt>Typ ovladače</dt><dd>DERBY RC</dd></div>
+            </dl>
+            <p class="club-note is-confirmed">Profil této rodiny DERBY RC byl změřen při RF testování ScoreBridge.</p>
+          </article>
+
+          <article class="club-card" data-club-card data-search="tj unhost trv elektronik os2010 radiovy 6 tlacitek">
+            <header class="club-card-head">
+              <div><span>OP Kladno</span><h3>TJ Unhošť</h3></div>
+              <code>TJUnhost</code>
+            </header>
+            <div class="club-media">
+              <button class="club-photo" type="button" data-club-image="kluby/TJUnhost/TJUnhost-tabule.webp" data-club-caption="TJ Unhošť — výsledková tabule">
+                <img src="kluby/TJUnhost/TJUnhost-tabule.webp" alt="Výsledková tabule TJ Unhošť" loading="lazy" decoding="async">
+                <span>Tabule</span>
+              </button>
+              <button class="club-photo" type="button" data-club-image="kluby/TJUnhost/TJUnhost-ovladac.webp" data-club-caption="TJ Unhošť — ovladač TRV OS2010">
+                <img src="kluby/TJUnhost/TJUnhost-ovladac.webp" alt="Ovladač TRV OS2010 klubu TJ Unhošť" loading="lazy" decoding="async">
+                <span>Ovladač</span>
+              </button>
+            </div>
+            <dl class="club-specs">
+              <div><dt>Frekvence</dt><dd><span class="club-frequency is-pending">K ověření</span></dd></div>
+              <div><dt>Výrobce</dt><dd>TRV elektronik</dd></div>
+              <div><dt>Typ ovladače</dt><dd>OS2010 · 6 tlačítek</dd></div>
+            </dl>
+            <p class="club-note">Model OS2010 je potvrzen štítkem. Fotografie elektroniky neobsahuje čitelné označení RF pásma.</p>
+            <details class="club-gallery">
+              <summary>Technické detaily <span>11</span></summary>
+              <div>
+                <button type="button" data-club-image="kluby/TJUnhost/TJUnhost-ovladac-detail.webp" data-club-caption="TJ Unhošť — detail ovladače"><img src="kluby/TJUnhost/TJUnhost-ovladac-detail.webp" alt="Detail ovladače TJ Unhošť" loading="lazy"></button>
+                <button type="button" data-club-image="kluby/TJUnhost/TJUnhost-ovladac-zadni.webp" data-club-caption="TJ Unhošť — štítek ovladače OS2010"><img src="kluby/TJUnhost/TJUnhost-ovladac-zadni.webp" alt="Štítek ovladače OS2010 TJ Unhošť" loading="lazy"></button>
+                <button type="button" data-club-image="kluby/TJUnhost/TJUnhost-ovladac-zadni-2.webp" data-club-caption="TJ Unhošť — zadní strana ovladače"><img src="kluby/TJUnhost/TJUnhost-ovladac-zadni-2.webp" alt="Zadní strana ovladače TJ Unhošť" loading="lazy"></button>
+                <button type="button" data-club-image="kluby/TJUnhost/TJUnhost-ovladac-vnitrni-1.webp" data-club-caption="TJ Unhošť — elektronika ovladače"><img src="kluby/TJUnhost/TJUnhost-ovladac-vnitrni-1.webp" alt="Elektronika ovladače TJ Unhošť" loading="lazy"></button>
+                <button type="button" data-club-image="kluby/TJUnhost/TJUnhost-ovladac-vnitrni-2.webp" data-club-caption="TJ Unhošť — vnitřní strana klávesnice"><img src="kluby/TJUnhost/TJUnhost-ovladac-vnitrni-2.webp" alt="Vnitřní strana ovladače TJ Unhošť" loading="lazy"></button>
+                <button type="button" data-club-image="kluby/TJUnhost/TJUnhost-tabule-konektory-1.webp" data-club-caption="TJ Unhošť — konektory tabule 1"><img src="kluby/TJUnhost/TJUnhost-tabule-konektory-1.webp" alt="Konektory tabule TJ Unhošť" loading="lazy"></button>
+                <button type="button" data-club-image="kluby/TJUnhost/TJUnhost-tabule-konektory-2.webp" data-club-caption="TJ Unhošť — konektory tabule 2"><img src="kluby/TJUnhost/TJUnhost-tabule-konektory-2.webp" alt="Konektory tabule TJ Unhošť" loading="lazy"></button>
+                <button type="button" data-club-image="kluby/TJUnhost/TJUnhost-tabule-konektory-3.webp" data-club-caption="TJ Unhošť — konektory tabule 3"><img src="kluby/TJUnhost/TJUnhost-tabule-konektory-3.webp" alt="Konektory tabule TJ Unhošť" loading="lazy"></button>
+                <button type="button" data-club-image="kluby/TJUnhost/TJUnhost-ovladac-test-1.webp" data-club-caption="TJ Unhošť — test ovladače 1"><img src="kluby/TJUnhost/TJUnhost-ovladac-test-1.webp" alt="Test ovladače TJ Unhošť" loading="lazy"></button>
+                <button type="button" data-club-image="kluby/TJUnhost/TJUnhost-ovladac-test-2.webp" data-club-caption="TJ Unhošť — test ovladače 2"><img src="kluby/TJUnhost/TJUnhost-ovladac-test-2.webp" alt="Test ovladače TJ Unhošť" loading="lazy"></button>
+                <button type="button" data-club-image="kluby/TJUnhost/TJUnhost-ovladac-test-3.webp" data-club-caption="TJ Unhošť — test ovladače 3"><img src="kluby/TJUnhost/TJUnhost-ovladac-test-3.webp" alt="Test ovladače TJ Unhošť" loading="lazy"></button>
+              </div>
+            </details>
+          </article>
+        </div>
+
+        <div class="clubs-empty" id="clubsEmpty" hidden>Žádný klub neodpovídá hledanému výrazu.</div>
+        <p class="clubs-source-note"><b>Poznámka k datům:</b> „K ověření“ znamená, že frekvenci nelze bezpečně určit z fotografie ani výrobního štítku. Před integrací ji změří kalibrace ScoreBridge.</p>
+      </section></template>
+
       <section class="engineering-section" id="telemetry">
         <div class="section-bar"><h2>Systémová telemetrie</h2><span>Živé sledování / 30 vzorků</span></div>
         <div class="grid2">
@@ -240,6 +463,14 @@
       <div class="app-modal-body" id="appModalBody"></div>
       <footer class="app-modal-footer" id="appModalFooter" hidden></footer>
     </section>
+  </div>
+
+  <div class="club-lightbox" id="clubLightbox" aria-hidden="true" hidden>
+    <div class="club-lightbox-dialog" role="dialog" aria-modal="true" aria-labelledby="clubLightboxCaption">
+      <button class="club-lightbox-close" id="clubLightboxClose" type="button" aria-label="Zavřít fotografii">×</button>
+      <img id="clubLightboxImage" alt="">
+      <p id="clubLightboxCaption"></p>
+    </div>
   </div>
 </div>
 

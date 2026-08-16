@@ -1,0 +1,629 @@
+/* Evidence klubů OP Kladno */
+body:not(.clubs-page) .clubs-section,
+body:not(.clubs-page) .club-lightbox{
+  display:none !important;
+}
+
+.clubs-page .dashboard-main{
+  min-width:0;
+}
+
+.clubs-page .dashboard-content{
+  padding-bottom:48px;
+}
+
+.clubs-page-heading{
+  margin-bottom:16px;
+}
+
+.clubs-page-heading .heading-actions a{
+  min-height:38px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:0 14px;
+  border:1px solid #d2d5cd;
+  border-radius:8px;
+  background:#fff;
+  color:#3b3e42;
+  font-size:9px;
+  font-weight:800;
+  text-decoration:none;
+}
+
+.clubs-page-heading .heading-actions a:hover{
+  border-color:#98bc50;
+  background:#f6f9ef;
+}
+
+.clubs-map-section{
+  margin:0 0 16px;
+  padding:20px;
+  border:1px solid var(--eng-line);
+  border-radius:16px;
+  background:#eceee8;
+}
+
+.clubs-map-head{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:18px;
+  margin-bottom:13px;
+}
+
+.clubs-map-head h2{
+  color:#202226;
+  font-size:18px;
+  line-height:1.15;
+  letter-spacing:-.45px;
+}
+
+.clubs-map-head p{
+  margin-top:6px;
+  color:#777b74;
+  font-size:9px;
+  line-height:1.5;
+}
+
+.clubs-map-status{
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  padding:7px 10px;
+  border:1px solid #ead59f;
+  border-radius:999px;
+  background:#fff8e6;
+  color:#8a6411;
+  font-size:8px;
+  font-weight:850;
+  white-space:nowrap;
+  text-transform:uppercase;
+}
+
+.clubs-map-status::before{
+  content:'';
+  width:7px;
+  height:7px;
+  border-radius:50%;
+  background:#d89a14;
+  box-shadow:0 0 0 3px #fff0c9;
+}
+
+#clubsMap{
+  height:390px;
+  border:1px solid #d4d7cf;
+  border-radius:12px;
+  background:#dfe3da;
+  overflow:hidden;
+}
+
+.clubs-map-fallback{
+  height:100%;
+  display:grid;
+  place-items:center;
+  padding:24px;
+  color:#6f746b;
+  font-size:10px;
+  text-align:center;
+}
+
+.club-map-marker{
+  width:18px;
+  height:18px;
+  display:block;
+  border:3px solid #fff;
+  border-radius:50%;
+  background:#96c632;
+  box-shadow:0 3px 12px rgba(36,45,24,.35);
+}
+
+.club-map-popup h3{
+  margin:0 0 6px;
+  color:#222529;
+  font-size:13px;
+}
+
+.club-map-popup p{
+  margin:0 0 8px;
+  color:#666b62;
+  font-size:11px;
+  line-height:1.45;
+}
+
+.club-map-popup span{
+  display:inline-flex;
+  align-items:center;
+  padding:4px 7px;
+  border-radius:999px;
+  background:#fff1ca;
+  color:#8b650e;
+  font-size:9px;
+  font-weight:800;
+}
+
+.leaflet-popup-content-wrapper{
+  border-radius:10px;
+}
+
+.leaflet-popup-content{
+  margin:13px 14px;
+}
+
+.clubs-section{
+  scroll-margin-top:78px;
+  margin:16px 0;
+  padding:20px;
+  border:1px solid var(--eng-line);
+  border-radius:16px;
+  background:#eceee8;
+}
+.clubs-heading{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:24px;
+  margin-bottom:16px;
+}
+.clubs-eyebrow{
+  display:block;
+  margin-bottom:6px;
+  color:#7f837b;
+  font-size:8px;
+  font-weight:850;
+  letter-spacing:.9px;
+  text-transform:uppercase;
+}
+.clubs-heading h2{
+  color:#202226;
+  font-size:21px;
+  line-height:1.12;
+  letter-spacing:-.65px;
+}
+.clubs-heading p{
+  margin-top:7px;
+  color:#777b74;
+  font-size:10px;
+  line-height:1.5;
+}
+.clubs-summary{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(80px,1fr));
+  min-width:300px;
+  border:1px solid #d4d7cf;
+  border-radius:12px;
+  background:#f8f9f6;
+  overflow:hidden;
+}
+.clubs-summary div{
+  padding:12px 14px;
+  border-right:1px solid #dfe1da;
+}
+.clubs-summary div:last-child{border-right:0;}
+.clubs-summary strong{
+  display:block;
+  color:#222529;
+  font:850 20px/1 ui-monospace,'SF Mono',Menlo,monospace;
+}
+.clubs-summary span{
+  display:block;
+  margin-top:5px;
+  color:#8b8e87;
+  font-size:8px;
+  font-weight:750;
+  text-transform:uppercase;
+}
+.clubs-toolbar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  margin-bottom:13px;
+  padding:10px;
+  border:1px solid #d9dcd4;
+  border-radius:12px;
+  background:#f7f8f4;
+}
+.clubs-search{
+  width:min(420px,100%);
+  height:40px;
+  display:flex;
+  align-items:center;
+  gap:9px;
+  padding:0 12px;
+  border:1px solid #d4d6d0;
+  border-radius:9px;
+  background:#fff;
+  color:#8b8e87;
+}
+.clubs-search:focus-within{
+  border-color:#91b941;
+  box-shadow:0 0 0 3px rgba(183,255,42,.2);
+}
+.clubs-search input{
+  min-width:0;
+  width:100%;
+  border:0;
+  outline:0;
+  background:transparent;
+  color:#2b2d31;
+  font:inherit;
+  font-size:10px;
+}
+.clubs-search input::placeholder{color:#a0a39c;}
+.clubs-legend{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  color:#777b74;
+  font-size:8px;
+  font-weight:750;
+  white-space:nowrap;
+}
+.clubs-legend span{display:inline-flex;align-items:center;gap:5px;}
+.clubs-legend i{
+  width:7px;
+  height:7px;
+  display:block;
+  border-radius:50%;
+}
+.clubs-legend .is-confirmed{background:#7cad19;}
+.clubs-legend .is-pending{background:#d89a14;}
+.clubs-legend .is-wired{background:#6d7786;}
+.clubs-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  align-items:start;
+  gap:13px;
+}
+.club-card{
+  min-width:0;
+  padding:14px;
+  border:1px solid #d9dbd5;
+  border-radius:14px;
+  background:#fff;
+  box-shadow:0 4px 13px rgba(29,32,26,.04);
+}
+.club-card[hidden]{display:none;}
+.club-card-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:11px;
+}
+.club-card-head span{
+  display:block;
+  margin-bottom:3px;
+  color:#969992;
+  font-size:7px;
+  font-weight:800;
+  letter-spacing:.7px;
+  text-transform:uppercase;
+}
+.club-card-head h3{
+  color:#222529;
+  font-size:15px;
+  line-height:1.2;
+  letter-spacing:-.3px;
+}
+.club-card-head code{
+  max-width:46%;
+  padding:5px 7px;
+  overflow:hidden;
+  border:1px solid #dfe1db;
+  border-radius:7px;
+  background:#f3f4f0;
+  color:#686c65;
+  font:700 8px ui-monospace,'SF Mono',Menlo,monospace;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.club-media{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:8px;
+}
+.engineering-app .club-photo{
+  position:relative;
+  height:auto;
+  min-height:0;
+  display:block;
+  aspect-ratio:4/3;
+  padding:0;
+  border:1px solid #d8dad4;
+  border-radius:10px;
+  background:#e8e9e5;
+  color:#fff;
+  overflow:hidden;
+  cursor:zoom-in;
+}
+.engineering-app .club-photo:hover{
+  border-color:#aeb3a8;
+  background:#e4e6e0;
+  transform:translateY(-1px);
+  box-shadow:0 8px 20px rgba(25,28,24,.12);
+}
+.club-photo img{
+  width:100%;
+  height:100%;
+  display:block;
+  object-fit:contain;
+}
+.club-photo span{
+  position:absolute;
+  left:7px;
+  bottom:7px;
+  padding:5px 7px;
+  border:1px solid rgba(255,255,255,.2);
+  border-radius:6px;
+  background:rgba(25,27,31,.8);
+  color:#fff;
+  font-size:7px;
+  font-weight:850;
+  letter-spacing:.7px;
+  text-transform:uppercase;
+  backdrop-filter:blur(5px);
+}
+.club-address{
+  display:flex;
+  align-items:flex-start;
+  gap:7px;
+  margin-top:9px;
+  padding:8px 9px;
+  border:1px solid #e0e1dc;
+  border-radius:8px;
+  background:#f8f8f5;
+  color:#676b64;
+  font-size:8px;
+  font-weight:750;
+  line-height:1.45;
+}
+.club-address span{
+  color:#83ad2e;
+  font-size:11px;
+  line-height:1;
+}
+.club-specs{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:0;
+  margin-top:10px;
+  border:1px solid #e0e1dc;
+  border-radius:10px;
+  background:#f8f8f5;
+  overflow:hidden;
+}
+.club-specs>div{
+  min-width:0;
+  padding:10px;
+  border-right:1px solid #e0e1dc;
+}
+.club-specs>div:last-child{border-right:0;}
+.club-specs dt{
+  margin-bottom:6px;
+  color:#949790;
+  font-size:7px;
+  font-weight:800;
+  letter-spacing:.55px;
+  text-transform:uppercase;
+}
+.club-specs dd{
+  margin:0;
+  color:#2f3236;
+  font-size:9px;
+  line-height:1.35;
+  font-weight:800;
+  overflow-wrap:anywhere;
+}
+.club-frequency{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+}
+.club-frequency::before{
+  content:'';
+  width:6px;
+  height:6px;
+  flex:0 0 auto;
+  border-radius:50%;
+  background:#999;
+}
+.club-frequency.is-confirmed{color:#527900;}
+.club-frequency.is-confirmed::before{background:#82b520;box-shadow:0 0 0 3px #e5f5c7;}
+.club-frequency.is-pending{color:#9b6b00;}
+.club-frequency.is-pending::before{background:#d89a14;box-shadow:0 0 0 3px #fff0c9;}
+.club-frequency.is-wired{color:#596270;}
+.club-frequency.is-wired::before{background:#707b8b;box-shadow:0 0 0 3px #e3e7ec;}
+.club-note{
+  margin-top:9px;
+  padding:9px 10px;
+  border-left:3px solid #d49a1e;
+  border-radius:0 8px 8px 0;
+  background:#fff8e6;
+  color:#76694b;
+  font-size:8px;
+  line-height:1.55;
+}
+.club-note.is-confirmed{
+  border-left-color:#83b626;
+  background:#f3fbdc;
+  color:#587328;
+}
+.club-gallery{
+  margin-top:9px;
+  border:1px solid #e0e1dc;
+  border-radius:9px;
+  background:#f7f8f4;
+}
+.club-gallery summary{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding:9px 10px;
+  color:#656961;
+  font-size:8px;
+  font-weight:800;
+  cursor:pointer;
+  list-style:none;
+}
+.club-gallery summary::-webkit-details-marker{display:none;}
+.club-gallery summary::before{
+  content:'+';
+  width:17px;
+  height:17px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  margin-right:1px;
+  border-radius:5px;
+  background:#e7e9e2;
+  color:#62665e;
+  font-size:12px;
+}
+.club-gallery[open] summary::before{content:'−';}
+.club-gallery summary span{
+  margin-left:auto;
+  padding:2px 6px;
+  border-radius:999px;
+  background:#e4e6df;
+  color:#777b73;
+  font-size:7px;
+}
+.club-gallery>div{
+  display:grid;
+  grid-template-columns:repeat(6,minmax(0,1fr));
+  gap:5px;
+  padding:0 8px 8px;
+}
+.engineering-app .club-gallery button{
+  height:auto;
+  min-height:0;
+  aspect-ratio:1;
+  padding:0;
+  border:1px solid #d7d9d3;
+  border-radius:7px;
+  background:#e8eae5;
+  overflow:hidden;
+  cursor:zoom-in;
+}
+.engineering-app .club-gallery button:hover{
+  border-color:#95b84e;
+  background:#e8eae5;
+  transform:translateY(-1px);
+}
+.club-gallery img{width:100%;height:100%;display:block;object-fit:cover;}
+.clubs-empty{
+  padding:30px;
+  border:1px dashed #c9ccc3;
+  border-radius:12px;
+  background:#f8f9f5;
+  color:#7b7f77;
+  font-size:11px;
+  text-align:center;
+}
+.clubs-source-note{
+  margin:13px 2px 0;
+  color:#777b74;
+  font-size:8px;
+  line-height:1.55;
+}
+.club-lightbox{
+  position:fixed;
+  inset:0;
+  z-index:260;
+  display:grid;
+  place-items:center;
+  padding:24px;
+  background:rgba(14,16,19,.84);
+  opacity:0;
+  visibility:hidden;
+  pointer-events:none;
+  backdrop-filter:blur(10px);
+  transition:opacity .18s ease,visibility .18s ease;
+}
+.club-lightbox.is-open{
+  opacity:1;
+  visibility:visible;
+  pointer-events:auto;
+}
+.club-lightbox-dialog{
+  position:relative;
+  width:min(1100px,100%);
+  max-height:calc(100vh - 48px);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
+.club-lightbox img{
+  max-width:100%;
+  max-height:calc(100vh - 110px);
+  display:block;
+  border-radius:12px;
+  background:#222;
+  object-fit:contain;
+  box-shadow:0 28px 80px rgba(0,0,0,.4);
+}
+.club-lightbox p{
+  margin-top:11px;
+  color:#f1f2ef;
+  font-size:10px;
+  font-weight:750;
+  text-align:center;
+}
+.engineering-app .club-lightbox-close{
+  position:absolute;
+  z-index:2;
+  top:10px;
+  right:10px;
+  width:42px;
+  height:42px;
+  padding:0;
+  border-color:rgba(255,255,255,.2);
+  border-radius:50%;
+  background:rgba(18,20,23,.78);
+  color:#fff;
+  font-size:23px;
+  font-weight:400;
+  backdrop-filter:blur(5px);
+}
+.engineering-app .club-lightbox-close:hover{background:#fff;color:#222;}
+body.club-lightbox-open{overflow:hidden;}
+
+@media(max-width:980px){
+  .clubs-heading{align-items:flex-start;flex-direction:column;}
+  .clubs-summary{width:100%;min-width:0;}
+  .clubs-grid{grid-template-columns:1fr;}
+}
+
+@media(max-width:700px){
+  .clubs-map-section{padding:13px;border-radius:14px;}
+  .clubs-map-head{align-items:flex-start;flex-direction:column;}
+  #clubsMap{height:320px;}
+  .clubs-section{padding:13px;border-radius:14px;}
+  .clubs-heading h2{font-size:19px;}
+  .clubs-summary div{padding:10px;}
+  .clubs-toolbar{align-items:stretch;flex-direction:column;}
+  .clubs-search{width:100%;}
+  .clubs-legend{justify-content:space-between;}
+  .club-card{padding:11px;}
+  .club-media{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .club-specs{grid-template-columns:1fr;}
+  .club-specs>div{border-right:0;border-bottom:1px solid #e0e1dc;}
+  .club-specs>div:last-child{border-bottom:0;}
+  .club-gallery>div{grid-template-columns:repeat(4,minmax(0,1fr));}
+  .club-lightbox{padding:12px;}
+  .club-lightbox-dialog{max-height:calc(100vh - 24px);}
+  .club-lightbox img{max-height:calc(100vh - 84px);}
+}
+
+@media(max-width:430px){
+  .clubs-summary{grid-template-columns:repeat(3,minmax(0,1fr));}
+  .clubs-summary strong{font-size:17px;}
+  .clubs-summary span{font-size:6.5px;}
+  .club-card-head{align-items:flex-start;flex-direction:column;gap:7px;}
+  .club-card-head code{max-width:100%;}
+  .club-media{grid-template-columns:1fr 1fr;}
+  .club-gallery>div{grid-template-columns:repeat(3,minmax(0,1fr));}
+}

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kluby OP Kladno — ScoreBridge</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="./scorebridge_admin_score_v2.css">
+<link rel="stylesheet" href="./scorebridge_clubs.css">
+</head>
+<body class="clubs-page">
+<div class="engineering-app clubs-app">
+  <aside class="sidebar" id="mainSidebar">
+    <div class="sidebar-brand">
+      <a href="./index.html" aria-label="Zpět na přehled ScoreBridge">
+        <img src="Logo/2.png" alt="ScoreBridge">
+      </a>
+      <button class="mobile-menu-close" id="mobileMenuClose" type="button" aria-label="Zavřít hlavní nabídku">×</button>
+    </div>
+
+    <nav class="workspace-menu" aria-label="Hlavní nabídka">
+      <div class="nav-group">
+        <div class="nav-group-title">Hlavní nabídka</div>
+        <a class="side-link" href="./index.html#overview"><span class="nav-icon">▦</span>Přehled</a>
+        <a class="side-link active" href="./kluby.html" aria-current="page"><span class="nav-icon">⬡</span>Kluby <span class="side-count">7</span></a>
+        <a class="side-link" href="./index.html#scoreboard"><span class="nav-icon">◫</span>Živé skóre</a>
+        <a class="side-link" href="./index.html#device-controls"><span class="nav-icon">⌁</span>Ovládání zařízení</a>
+        <a class="side-link" href="./index.html#calibration"><span class="nav-icon">⌾</span>Kalibrace ovladačky</a>
+        <a class="side-link" href="./index.html#event-timeline"><span class="nav-icon">⌁</span>Časová osa tlačítek</a>
+        <a class="side-link" href="./index.html#telemetry"><span class="nav-icon">⌇</span>Telemetrie</a>
+        <a class="side-link" href="./index.html#message-log"><span class="nav-icon">≡</span>Log zápasu <span class="side-count">CSV</span></a>
+      </div>
+      <div class="nav-group">
+        <div class="nav-group-title">Technické údaje</div>
+        <a class="side-link" href="#clubsMap"><span class="nav-icon">⌖</span>Mapa hřišť</a>
+        <a class="side-link" href="#clubsGrid"><span class="nav-icon">▤</span>Evidence tabulí</a>
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="device-profile">
+        <div class="device-avatar">OP</div>
+        <div>
+          <strong>OP Kladno</strong>
+          <small>7 evidovaných klubů</small>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <button class="sidebar-scrim" id="sidebarScrim" type="button" aria-label="Zavřít hlavní nabídku"></button>
+
+  <main class="dashboard-main">
+    <header class="dashboard-topbar">
+      <button class="sidebar-toggle" id="sidebarToggle" type="button" aria-controls="mainSidebar" aria-expanded="true">
+        <span class="sidebar-toggle-icon" aria-hidden="true">☰</span>
+        <span class="sidebar-toggle-label">Skrýt nabídku</span>
+      </button>
+      <img class="mobile-logo" src="Logo/2.png" alt="ScoreBridge">
+      <div class="breadcrumb"><span>Admin panel</span><span>›</span><b>Kluby</b></div>
+      <label class="engineering-search" for="clubSearchTop"><span>⌕</span><input id="clubSearchTop" type="search" placeholder="Hledat klub…" aria-label="Hledat klub"></label>
+      <div class="topbar-status">
+        <span class="pill"><span class="dot"></span>OP Kladno</span>
+      </div>
+    </header>
+
+    <div class="dashboard-content">
+      <section class="content-heading clubs-page-heading">
+        <div>
+          <small>ScoreBridge / OP Kladno</small>
+          <h1>Kluby</h1>
+          <p>Samostatná evidence výsledkových tabulí, ovladačů a umístění klubů.</p>
+        </div>
+        <div class="heading-actions">
+          <a href="./index.html">Zpět na přehled</a>
+          <a href="#clubsMap">Otevřít mapu</a>
+        </div>
+      </section>
+
+      <section class="clubs-map-section" aria-labelledby="clubsMapTitle">
+        <header class="clubs-map-head">
+          <div>
+            <span class="clubs-eyebrow">OP Kladno / adresy klubů</span>
+            <h2 id="clubsMapTitle">Mapa hřišť</h2>
+            <p>Body vycházejí z adres klubů uvedených ve FAČR. Detail umístění se bude dále ověřovat.</p>
+          </div>
+          <span class="clubs-map-status">V přípravě</span>
+        </header>
+        <div id="clubsMap" role="region" aria-label="Mapa sedmi klubů OP Kladno">
+          <div class="clubs-map-fallback">Načítám mapu klubů…</div>
+        </div>
+      </section>
+
+      <section class="clubs-section" id="clubs" aria-labelledby="clubsTitle">
+        <header class="clubs-heading">
+          <div>
+            <span class="clubs-eyebrow">OP Kladno / evidence stadionů</span>
+            <h2 id="clubsTitle">Výsledkové tabule a ovladače</h2>
+            <p>Fotodokumentace tabulí a ovladačů včetně dostupných technických údajů.</p>
+          </div>
+          <div class="clubs-summary" aria-label="Souhrn evidence klubů">
+            <div><strong>7</strong><span>klubů</span></div>
+            <div><strong>29</strong><span>fotografií</span></div>
+            <div><strong>3×</strong><span>DERBY RC</span></div>
+          </div>
+        </header>
+
+        <div class="clubs-toolbar">
+          <label class="clubs-search" for="clubSearch">
+            <span aria-hidden="true">⌕</span>
+            <input id="clubSearch" type="search" placeholder="Hledat klub, výrobce nebo typ…" autocomplete="off">
+          </label>
+          <div class="clubs-legend" aria-label="Legenda frekvence">
+            <span><i class="is-confirmed"></i>ověřeno</span>
+            <span><i class="is-pending"></i>k ověření</span>
+            <span><i class="is-wired"></i>kabel</span>
+          </div>
+        </div>
+
+        <div class="clubs-grid" id="clubsGrid"></div>
+        <div class="clubs-empty" id="clubsEmpty" hidden>Žádný klub neodpovídá hledanému výrazu.</div>
+        <p class="clubs-source-note"><b>Poznámka k datům:</b> „K ověření“ znamená, že frekvenci nelze bezpečně určit z fotografie ani výrobního štítku. Adresy klubů jsou převzaté z <a href="https://www.fotbal.cz/souteze/turnaje/hlavni/9db41758-f780-42a6-81a9-eff6ae3fc762" target="_blank" rel="noopener">přehledu soutěže FAČR</a>.</p>
+      </section>
+    </div>
+  </main>
+
+  <div class="club-lightbox" id="clubLightbox" aria-hidden="true">
+    <div class="club-lightbox-dialog" role="dialog" aria-modal="true" aria-labelledby="clubLightboxCaption">
+      <button class="club-lightbox-close" id="clubLightboxClose" type="button" aria-label="Zavřít fotografii">×</button>
+      <img id="clubLightboxImage" alt="">
+      <p id="clubLightboxCaption"></p>
+    </div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="./scorebridge_clubs.js"></script>
+</body>
+</html>
